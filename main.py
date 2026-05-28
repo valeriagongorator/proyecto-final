@@ -421,6 +421,10 @@ class WordHunt:
         self.mejor_combo = 0
         self.timer_activo = False
         self.timer_id = None
+        self.hud_anim_id = None
+        self.hud_anim_index = 0
+        self.hud_anim_panels = []
+        self.hud_anim_colors = [COLORS["cyan"], COLORS["purple"], COLORS["yellow"], COLORS["green"]]
         
         # Mostrar menu principal
         self.mostrar_menu_principal()
@@ -434,7 +438,11 @@ class WordHunt:
         if self.timer_id:
             self.ventana.after_cancel(self.timer_id)
             self.timer_id = None
+        if self.hud_anim_id:
+            self.ventana.after_cancel(self.hud_anim_id)
+            self.hud_anim_id = None
         self.timer_activo = False
+        self.hud_anim_panels = []
         
         for widget in self.ventana.winfo_children():
             widget.destroy()
@@ -888,6 +896,30 @@ class WordHunt:
     # PANTALLA DE JUEGO
     # --------------------------------------------------------
     
+    def actualizar_acento_hud(self):
+        """Cambia el color de acento de los paneles principales para dar dinamismo visual."""
+        if not self.hud_anim_panels:
+            self.hud_anim_id = None
+            return
+
+        vivos = []
+        color = self.hud_anim_colors[self.hud_anim_index % len(self.hud_anim_colors)]
+        for panel in self.hud_anim_panels:
+            try:
+                if panel.winfo_exists():
+                    panel.configure(highlightbackground=color, highlightcolor=color)
+                    vivos.append(panel)
+            except tk.TclError:
+                continue
+
+        self.hud_anim_panels = vivos
+        self.hud_anim_index = (self.hud_anim_index + 1) % len(self.hud_anim_colors)
+
+        if vivos:
+            self.hud_anim_id = self.ventana.after(700, self.actualizar_acento_hud)
+        else:
+            self.hud_anim_id = None
+
     def mostrar_pantalla_juego(self):
         """Muestra la pantalla principal del juego."""
         self.limpiar_ventana()
@@ -951,6 +983,7 @@ class WordHunt:
             highlight_width=1
         )
         frame_timer_panel.pack(side="right")
+        self.hud_anim_panels.append(frame_timer_panel)
         
         lbl_timer_titulo = tk.Label(
             frame_timer_panel,
@@ -1141,6 +1174,7 @@ class WordHunt:
             highlightthickness=1
         )
         frame_lateral.grid(row=1, column=1, sticky="nsew")
+        self.hud_anim_panels.append(frame_lateral)
         
         lbl_panel_titulo = tk.Label(
             frame_lateral,
@@ -1213,6 +1247,9 @@ class WordHunt:
             bg=COLORS["bg_medium"]
         )
         self.lbl_progreso.pack(pady=(15, 0))
+
+        if not self.hud_anim_id:
+            self.hud_anim_id = self.ventana.after(700, self.actualizar_acento_hud)
     
     # --------------------------------------------------------
     # LOGICA DE SELECCION
