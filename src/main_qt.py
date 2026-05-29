@@ -243,7 +243,6 @@ class WordHuntApp(QMainWindow):
 
         self.success_sound = None
         self.error_sound = None
-        self._setup_sounds()
 
         self.stacked = QStackedWidget()
         self.setCentralWidget(self.stacked)
