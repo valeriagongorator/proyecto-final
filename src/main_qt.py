@@ -12,6 +12,7 @@ from PyQt5.QtGui import QColor
 from PyQt5.QtMultimedia import QSoundEffect
 from PyQt5.QtWidgets import (
     QApplication,
+    QComboBox,
     QFrame,
     QGraphicsDropShadowEffect,
     QGridLayout,
@@ -113,6 +114,140 @@ EASY_TIME_BONUS_PER_WORD = 5
 DEFAULT_TIME_BONUS_PER_WORD = 20
 EASY_BONUS_LEVELS = {1, 2}
 
+TRANSLATIONS = {
+    "es": {
+        "window_title": "Word Hunt • Proyecto Final • Valeria Góngora",
+        "home_title": "WORD HUNT",
+        "home_subtitle": "Sistema de búsqueda · combos · pistas · bonus de tiempo",
+        "home_badge_mission": "CONTROL DE MISIÓN",
+        "home_badge_core": "NÚCLEO PYQT5",
+        "home_badge_sync": "SINCRONIZACIÓN ACTIVA",
+        "home_hero_desc": "Explora la matriz, marca rutas correctas y activa bonos de tiempo según la dificultad.",
+        "home_feature_challenges": "RETOS",
+        "home_feature_bonus": "BONUS",
+        "home_feature_goal": "OBJETIVO",
+        "home_feature_levels_value": "6 NIVELES",
+        "home_feature_combo_value": "COMBO ALTO",
+        "home_button_start": "INICIAR PARTIDA",
+        "home_button_guide": "ELEGIR NIVEL",
+        "home_footer": "Code in Place · Python + PyQt5 · Proyecto Final · Valeria Góngora",
+        "home_stat_record": "RECORD",
+        "home_stat_games": "PARTIDAS",
+        "home_stat_words": "PALABRAS",
+        "home_stat_levels": "NIVELES",
+        "language_label": "🇪🇸 IDIOMA / LANGUAGE",
+        "level_title": "SELECCIONA TU RETO",
+        "level_subtitle": "Cada nivel cambia el tamaño del tablero, el tiempo y la complejidad del reto.",
+        "level_header": "NIVEL {level}: {name}",
+        "level_status_new": "NUEVO",
+        "level_status_completed": "COMPLETADO",
+        "level_button_play": "JUGAR",
+        "game_exit": "X SALIR",
+        "game_select_letters": "Selecciona letras para formar una palabra.",
+        "game_confirm": "CONFIRMAR",
+        "game_clear": "BORRAR",
+        "game_hint": "PISTA ({count})",
+        "game_stats_title": "ESTADÍSTICAS",
+        "game_stats_subtitle": "Progreso del nivel",
+        "game_stats_score": "PUNTOS",
+        "game_stats_combo": "COMBO",
+        "game_stats_lives": "VIDAS",
+        "game_words": "PALABRAS",
+        "game_progress": "{found}/{total} · {percent}%",
+        "game_found": "ENCONTRADA",
+        "game_hidden": "OCULTA",
+        "game_word_found": "¡{word} encontrada! +{gained} puntos y +{bonus}s.",
+        "game_word_wrong": "Palabra incorrecta. Pierdes una vida.",
+        "game_hint_used": "Pista: se resaltó una letra de {word}.",
+        "summary_victory": "VICTORIA",
+        "summary_defeat": "DERROTA",
+        "summary_subtitle_victory": "Has completado el nivel y sumaste bonificaciones.",
+        "summary_subtitle_defeat": "Se agotó el tiempo o te quedaste sin vidas.",
+        "summary_score": "PUNTUACIÓN FINAL",
+        "summary_bonus": "BONUS",
+        "summary_combo": "MEJOR COMBO",
+        "summary_retry": "REINTENTAR",
+        "summary_next": "SIGUIENTE",
+        "summary_menu": "MENÚ",
+        "level_info": "Tablero {size}x{size} • {time} • {lives} vidas",
+        "level_name_1": "Principiante",
+        "level_name_2": "Fácil",
+        "level_name_3": "Intermedio",
+        "level_name_4": "Avanzado",
+        "level_name_5": "Experto",
+        "level_name_6": "Maestro",
+    },
+    "en": {
+        "window_title": "Word Hunt • Final Project • Valeria Góngora",
+        "home_title": "WORD HUNT",
+        "home_subtitle": "Search system · combos · hints · time bonus",
+        "home_badge_mission": "MISSION CONTROL",
+        "home_badge_core": "PYQT5 CORE",
+        "home_badge_sync": "LIVE SYNC",
+        "home_hero_desc": "Explore the grid, mark correct paths, and activate time bonuses based on difficulty.",
+        "home_feature_challenges": "CHALLENGES",
+        "home_feature_bonus": "BONUS",
+        "home_feature_goal": "GOAL",
+        "home_feature_levels_value": "6 LEVELS",
+        "home_feature_combo_value": "HIGH COMBO",
+        "home_button_start": "START GAME",
+        "home_button_guide": "CHOOSE LEVEL",
+        "home_footer": "Code in Place · Python + PyQt5 · Final Project · Valeria Góngora",
+        "home_stat_record": "BEST SCORE",
+        "home_stat_games": "GAMES",
+        "home_stat_words": "WORDS",
+        "home_stat_levels": "LEVELS",
+        "language_label": "🇺🇸 LANGUAGE / IDIOMA",
+        "level_title": "CHOOSE YOUR CHALLENGE",
+        "level_subtitle": "Each level changes the board size, time, and challenge difficulty.",
+        "level_header": "LEVEL {level}: {name}",
+        "level_status_new": "NEW",
+        "level_status_completed": "COMPLETED",
+        "level_button_play": "PLAY",
+        "game_exit": "X EXIT",
+        "game_select_letters": "Select letters to form a word.",
+        "game_confirm": "CONFIRM",
+        "game_clear": "CLEAR",
+        "game_hint": "HINT ({count})",
+        "game_stats_title": "STATISTICS",
+        "game_stats_subtitle": "Level progress",
+        "game_stats_score": "POINTS",
+        "game_stats_combo": "COMBO",
+        "game_stats_lives": "LIVES",
+        "game_words": "WORDS",
+        "game_progress": "{found}/{total} · {percent}%",
+        "game_found": "FOUND",
+        "game_hidden": "HIDDEN",
+        "game_word_found": "¡{word} found! +{gained} points and +{bonus}s.",
+        "game_word_wrong": "Incorrect word. You lose a life.",
+        "game_hint_used": "Hint: a letter from {word} was highlighted.",
+        "summary_victory": "VICTORY",
+        "summary_defeat": "DEFEAT",
+        "summary_subtitle_victory": "You completed the level and earned bonuses.",
+        "summary_subtitle_defeat": "Time ran out or you ran out of lives.",
+        "summary_score": "FINAL SCORE",
+        "summary_bonus": "BONUS",
+        "summary_combo": "BEST COMBO",
+        "summary_retry": "RETRY",
+        "summary_next": "NEXT",
+        "summary_menu": "MENU",
+        "level_info": "Board {size}x{size} • {time} • {lives} lives",
+        "level_name_1": "Beginner",
+        "level_name_2": "Easy",
+        "level_name_3": "Intermediate",
+        "level_name_4": "Advanced",
+        "level_name_5": "Expert",
+        "level_name_6": "Master",
+    },
+}
+
+
+def _format_translation(text, **kwargs):
+    try:
+        return text.format(**kwargs)
+    except KeyError:
+        return text
+
 
 def crear_matriz_vacia(tamano):
     return [["" for _ in range(tamano)] for _ in range(tamano)]
@@ -203,9 +338,151 @@ def normalizar_paso(valor):
 
 
 class WordHuntApp(QMainWindow):
+    def t(self, key, **kwargs):
+        language = getattr(self, "current_language", "es")
+        text = TRANSLATIONS.get(language, TRANSLATIONS["es"]).get(key, key)
+        return _format_translation(text, **kwargs)
+
+    def set_language(self, language):
+        self.current_language = language
+        if hasattr(self, "language_selector"):
+            self.language_selector.blockSignals(True)
+            self.language_selector.setCurrentIndex(0 if language == "es" else 1)
+            self.language_selector.blockSignals(False)
+        self.retranslate_ui()
+
+    def _level_name(self, level_number):
+        return self.t(f"level_name_{level_number}")
+
+    def retranslate_ui(self):
+        self.setWindowTitle(self.t("window_title"))
+
+        if hasattr(self, "home_title"):
+            self.home_title.setText(self.t("home_title"))
+        if hasattr(self, "home_subtitle"):
+            self.home_subtitle.setText(self.t("home_subtitle"))
+        if hasattr(self, "home_badge_labels"):
+            for badge, key in zip(self.home_badge_labels, ("home_badge_mission", "home_badge_core", "home_badge_sync")):
+                badge.setText(self.t(key))
+        if hasattr(self, "home_hero_desc"):
+            self.home_hero_desc.setText(self.t("home_hero_desc"))
+        if hasattr(self, "home_start_btn"):
+            self.home_start_btn.setText(self.t("home_button_start"))
+        if hasattr(self, "home_guide_btn"):
+            self.home_guide_btn.setText(self.t("home_button_guide"))
+        if hasattr(self, "home_footer"):
+            self.home_footer.setText(self.t("home_footer"))
+
+        if hasattr(self, "home_score_card"):
+            self.home_score_card.title_label.setText(self.t("home_stat_record"))
+        if hasattr(self, "home_games_card"):
+            self.home_games_card.title_label.setText(self.t("home_stat_games"))
+        if hasattr(self, "home_words_card"):
+            self.home_words_card.title_label.setText(self.t("home_stat_words"))
+        if hasattr(self, "home_levels_card"):
+            self.home_levels_card.title_label.setText(self.t("home_stat_levels"))
+
+        if hasattr(self, "language_label"):
+            self.language_label.setText(self.t("language_label"))
+
+        if hasattr(self, "level_title"):
+            self.level_title.setText(self.t("level_title"))
+        if hasattr(self, "level_subtitle"):
+            self.level_subtitle.setText(self.t("level_subtitle"))
+        if hasattr(self, "level_cards"):
+            for number, card in self.level_cards.items():
+                refs = getattr(self, "level_card_refs", {}).get(number)
+                if not refs:
+                    continue
+                refs["status"].setText(self.t("level_status_completed") if self.level_status.get(number) == "COMPLETADO" else self.t("level_status_new"))
+                status_color = COLORS["green"] if self.level_status.get(number) == "COMPLETADO" else COLORS["cyan"]
+                refs["status"].setStyleSheet(f"background-color: transparent; border: none; color: {status_color}; font-family: {FONT_FAMILY}; font-size: 10px; font-weight: 900;")
+                display_name = self._level_name(number)
+                refs["name"].setText(display_name.upper())
+                config = NIVELES[number]
+                refs["info"].setText(self.t("level_info", size=config["tamano"], time=formatear_tiempo(config["tiempo"]), lives=config["vidas"]))
+                refs["hints"].setText(f"{config['pistas']} pistas" if self.current_language == "es" else f"{config['pistas']} hints")
+                refs["points"].setText(f"{config['puntos_base']} pts" if self.current_language == "es" else f"{config['puntos_base']} pts")
+                refs["bonus"].setText(f"+{self._time_bonus_for_level(number)}s")
+                refs["button"].setText(self.t("level_button_play"))
+
+        if hasattr(self, "confirm_btn"):
+            self.confirm_btn.setText(self.t("game_confirm"))
+        if hasattr(self, "clear_btn"):
+            self.clear_btn.setText(self.t("game_clear"))
+        if hasattr(self, "hint_btn"):
+            self.hint_btn.setText(self.t("game_hint", count=self.hints_left))
+        if hasattr(self, "status_label"):
+            if self.status_label.text() in ["Selecciona letras para formar una palabra.", "Select letters to form a word."]:
+                self.status_label.setText(self.t("game_select_letters"))
+        if hasattr(self, "game_words_title"):
+            self.game_words_title.setText(self.t("game_words"))
+        if hasattr(self, "game_stats_title"):
+            self.game_stats_title.setText(self.t("game_stats_title"))
+        if hasattr(self, "game_stats_subtitle"):
+            self.game_stats_subtitle.setText(self.t("game_stats_subtitle"))
+        if hasattr(self, "progress_label"):
+            self._refresh_progress()
+        if hasattr(self, "score_card"):
+            self.score_card.title_label.setText(self.t("game_stats_score"))
+        if hasattr(self, "combo_card"):
+            self.combo_card.title_label.setText(self.t("game_stats_combo"))
+        if hasattr(self, "lives_card"):
+            self.lives_card.title_label.setText(self.t("game_stats_lives"))
+
+        if hasattr(self, "summary_title"):
+            if self.summary_result == "victory":
+                self.summary_title.setText(self.t("summary_victory"))
+            else:
+                self.summary_title.setText(self.t("summary_defeat"))
+        if hasattr(self, "summary_subtitle"):
+            if self.summary_result == "victory":
+                self.summary_subtitle.setText(self.t("summary_subtitle_victory"))
+            else:
+                self.summary_subtitle.setText(self.t("summary_subtitle_defeat"))
+        if hasattr(self, "summary_score"):
+            self.summary_score.title_label.setText(self.t("summary_score"))
+        if hasattr(self, "summary_bonus"):
+            self.summary_bonus.title_label.setText(self.t("summary_bonus"))
+        if hasattr(self, "summary_combo"):
+            self.summary_combo.title_label.setText(self.t("summary_combo"))
+
+    def _refresh_level_card_texts(self, number):
+        refs = getattr(self, "level_card_refs", {}).get(number)
+        if not refs:
+            return
+        status_text = self.t("level_status_completed") if self.level_status.get(number) == "COMPLETADO" else self.t("level_status_new")
+        status_color = COLORS["green"] if self.level_status.get(number) == "COMPLETADO" else COLORS["cyan"]
+        refs["status"].setText(status_text)
+        refs["status"].setStyleSheet(f"background-color: transparent; border: none; color: {status_color}; font-family: {FONT_FAMILY}; font-size: 10px; font-weight: 900;")
+        refs["name"].setText(self._level_name(number).upper())
+        config = NIVELES[number]
+        refs["info"].setText(self.t("level_info", size=config["tamano"], time=formatear_tiempo(config["tiempo"]), lives=config["vidas"]))
+        refs["hints"].setText(f"{config['pistas']} pistas" if self.current_language == "es" else f"{config['pistas']} hints")
+        refs["points"].setText(f"{config['puntos_base']} pts")
+        refs["bonus"].setText(f"+{self._time_bonus_for_level(number)}s")
+        refs["button"].setText(self.t("level_button_play"))
+
+    def _translate_level_context(self, level_number):
+        return self._level_name(level_number)
+
+    def _get_level_display_name(self, level_number):
+        return self._level_name(level_number)
+
+    def _refresh_summary_texts(self):
+        if getattr(self, "summary_title", None):
+            if self.summary_title.text() in ["VICTORIA", "VICTORY"]:
+                self.summary_title.setText(self.t("summary_victory"))
+            elif self.summary_title.text() in ["DERROTA", "DEFEAT"]:
+                self.summary_title.setText(self.t("summary_defeat"))
+        if getattr(self, "summary_subtitle", None):
+            if self.summary_subtitle.text() in ["Has completado el nivel y sumaste bonificaciones.", "Se agotó el tiempo o te quedaste sin vidas."]:
+                self.summary_subtitle.setText(self.t("summary_subtitle_victory"))
+
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Word Hunt • Proyecto Final • Valeria Góngora")
+        self.current_language = "es"
+        self.setWindowTitle(self.t("window_title"))
         self.resize(1220, 760)
         self.setMinimumSize(1040, 720)
         self.setStyleSheet(f"QMainWindow {{ background-color: {COLORS['bg']}; }}")
@@ -234,6 +511,7 @@ class WordHuntApp(QMainWindow):
         self.hints_left = 0
         self.time_left = 0
         self.level_status = {}
+        self.summary_result = "victory"
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.tick_timer)
@@ -272,6 +550,7 @@ class WordHuntApp(QMainWindow):
         self._build_level_view()
         self._build_game_view()
         self._build_summary_view()
+        self.retranslate_ui()
 
         self.show_screen("home")
 
@@ -352,16 +631,16 @@ class WordHuntApp(QMainWindow):
         header_layout = QVBoxLayout(header)
         header_layout.setContentsMargins(0, 0, 0, 0)
 
-        title = QLabel("WORD HUNT")
-        title.setStyleSheet(f"color: {COLORS['cyan']}; font-family: {LETTER_FONT}; font-size: 64px; font-weight: 900;")
-        title.setAlignment(Qt.AlignCenter)
-        self._add_glow(title, COLORS["cyan"], 36)
-        header_layout.addWidget(title)
+        self.home_title = QLabel(self.t("home_title"))
+        self.home_title.setStyleSheet(f"color: {COLORS['cyan']}; font-family: {LETTER_FONT}; font-size: 64px; font-weight: 900;")
+        self.home_title.setAlignment(Qt.AlignCenter)
+        self._add_glow(self.home_title, COLORS["cyan"], 36)
+        header_layout.addWidget(self.home_title)
 
-        subtitle = QLabel("Sistema de búsqueda · combos · pistas · bonus de tiempo")
-        subtitle.setStyleSheet(f"color: {COLORS['soft']}; font-family: {FONT_FAMILY}; font-size: 14px; font-weight: 700;")
-        subtitle.setAlignment(Qt.AlignCenter)
-        header_layout.addWidget(subtitle)
+        self.home_subtitle = QLabel(self.t("home_subtitle"))
+        self.home_subtitle.setStyleSheet(f"color: {COLORS['soft']}; font-family: {FONT_FAMILY}; font-size: 14px; font-weight: 700;")
+        self.home_subtitle.setAlignment(Qt.AlignCenter)
+        header_layout.addWidget(self.home_subtitle)
 
         hero = QFrame()
         hero.setStyleSheet(f"background-color: rgba(23, 32, 51, 235); border-radius: 12px; border: 1px solid {COLORS['cyan']};")
@@ -372,15 +651,34 @@ class WordHuntApp(QMainWindow):
 
         hero_badges = QHBoxLayout()
         hero_badges.setSpacing(10)
-        badge1 = QLabel("MISSION CONTROL")
+        self.home_badge_labels = []
+        badge1 = QLabel(self.t("home_badge_mission"))
         badge1.setStyleSheet(self._chip_style(COLORS["neon"]))
-        badge2 = QLabel("PYQT5 CORE")
+        badge2 = QLabel(self.t("home_badge_core"))
         badge2.setStyleSheet(self._chip_style(COLORS["yellow"]))
-        badge3 = QLabel("SYNC ONLINE")
+        badge3 = QLabel(self.t("home_badge_sync"))
         badge3.setStyleSheet(self._chip_style(COLORS["green"]))
+        self.home_badge_labels.extend([badge1, badge2, badge3])
         hero_badges.addWidget(badge1)
         hero_badges.addWidget(badge2)
         hero_badges.addWidget(badge3)
+
+        self.language_label = QLabel(self.t("language_label"))
+        self.language_label.setStyleSheet(f"background-color: {COLORS['surface']}; color: {COLORS['soft']}; border: 1px solid {COLORS['line']}; border-radius: 8px; padding: 6px 10px; font-family: {FONT_FAMILY}; font-size: 10px; font-weight: 800;")
+
+        self.language_selector = QComboBox()
+        # Agrega banderas a las opciones
+        self.language_selector.addItem("🇪🇸  Español")
+        self.language_selector.addItem("🇺🇸  English")
+        self.language_selector.setCurrentIndex(0)
+        self.language_selector.setStyleSheet(
+            f"QComboBox {{ background-color: {COLORS['surface']}; color: {COLORS['text']}; border: 1px solid {COLORS['line']}; border-radius: 8px; padding: 5px 12px; font-family: {FONT_FAMILY}; font-size: 13px; font-weight: 800; min-width: 120px; }}"
+            f"QComboBox::drop-down {{ border: none; }}"
+            f"QComboBox QAbstractItemView {{ background-color: {COLORS['surface']}; color: {COLORS['text']}; selection-background-color: {COLORS['cyan']}; font-size: 13px; font-weight: 800; }}"
+        )
+        self.language_selector.currentIndexChanged.connect(lambda index: self.set_language("es" if index == 0 else "en"))
+        hero_badges.addWidget(self.language_label)
+        hero_badges.addWidget(self.language_selector)
         hero_badges.addStretch()
         hero_layout.addLayout(hero_badges)
 
@@ -410,26 +708,26 @@ class WordHuntApp(QMainWindow):
 
         intro_col = QVBoxLayout()
         intro_col.setSpacing(12)
-        hero_desc = QLabel("Explora la matriz, marca rutas correctas y activa bonos de tiempo según la dificultad.")
-        hero_desc.setWordWrap(True)
-        hero_desc.setStyleSheet(
+        self.home_hero_desc = QLabel(self.t("home_hero_desc"))
+        self.home_hero_desc.setWordWrap(True)
+        self.home_hero_desc.setStyleSheet(
             f"background-color: transparent; border: none; color: {COLORS['text']}; "
             f"font-family: {FONT_FAMILY}; font-size: 18px; font-weight: 900;"
         )
-        intro_col.addWidget(hero_desc)
-        intro_col.addWidget(self._feature_row("RETOS", "6 NIVELES", COLORS["cyan"]))
-        intro_col.addWidget(self._feature_row("BONUS", "+5s / +20s", COLORS["neon"]))
-        intro_col.addWidget(self._feature_row("OBJETIVO", "COMBO ALTO", COLORS["yellow"]))
+        intro_col.addWidget(self.home_hero_desc)
+        intro_col.addWidget(self._feature_row(self.t("home_feature_challenges"), self.t("home_feature_levels_value"), COLORS["cyan"]))
+        intro_col.addWidget(self._feature_row(self.t("home_feature_bonus"), "+5s / +20s", COLORS["neon"]))
+        intro_col.addWidget(self._feature_row(self.t("home_feature_goal"), self.t("home_feature_combo_value"), COLORS["yellow"]))
         center_row.addWidget(hero_grid, 0, Qt.AlignLeft)
         center_row.addLayout(intro_col, 1)
         hero_layout.addLayout(center_row)
 
         stats_row = QHBoxLayout()
         stats_row.setSpacing(10)
-        self.home_score_card = self._create_stat_card("RECORD", str(self.best_score), COLORS["yellow"])
-        self.home_games_card = self._create_stat_card("PARTIDAS", str(self.games_played), COLORS["cyan"])
-        self.home_words_card = self._create_stat_card("PALABRAS", str(self.total_words_found), COLORS["green"])
-        self.home_levels_card = self._create_stat_card("NIVELES", "0/6", COLORS["purple"])
+        self.home_score_card = self._create_stat_card(self.t("home_stat_record"), str(self.best_score), COLORS["yellow"])
+        self.home_games_card = self._create_stat_card(self.t("home_stat_games"), str(self.games_played), COLORS["cyan"])
+        self.home_words_card = self._create_stat_card(self.t("home_stat_words"), str(self.total_words_found), COLORS["green"])
+        self.home_levels_card = self._create_stat_card(self.t("home_stat_levels"), "0/6", COLORS["purple"])
         stats_row.addWidget(self.home_score_card)
         stats_row.addWidget(self.home_games_card)
         stats_row.addWidget(self.home_words_card)
@@ -437,23 +735,23 @@ class WordHuntApp(QMainWindow):
         hero_layout.addLayout(stats_row)
 
         buttons_row = QHBoxLayout()
-        start_btn = QPushButton("INICIAR PARTIDA")
-        start_btn.setStyleSheet(self._button_style(COLORS["green"], COLORS["surface"]))
-        start_btn.clicked.connect(lambda: (self._play_ui_click(), self.show_screen("level")))
-        guide_btn = QPushButton("ELEGIR NIVEL")
-        guide_btn.setStyleSheet(self._button_style(COLORS["cyan"], COLORS["surface"]))
-        guide_btn.clicked.connect(lambda: (self._play_ui_click(), self.show_screen("level")))
-        buttons_row.addWidget(start_btn)
-        buttons_row.addWidget(guide_btn)
+        self.home_start_btn = QPushButton(self.t("home_button_start"))
+        self.home_start_btn.setStyleSheet(self._button_style(COLORS["green"], COLORS["surface"]))
+        self.home_start_btn.clicked.connect(lambda: (self._play_ui_click(), self.show_screen("level")))
+        self.home_guide_btn = QPushButton(self.t("home_button_guide"))
+        self.home_guide_btn.setStyleSheet(self._button_style(COLORS["cyan"], COLORS["surface"]))
+        self.home_guide_btn.clicked.connect(lambda: (self._play_ui_click(), self.show_screen("level")))
+        buttons_row.addWidget(self.home_start_btn)
+        buttons_row.addWidget(self.home_guide_btn)
         buttons_row.addStretch()
         hero_layout.addLayout(buttons_row)
 
         layout.addWidget(header)
         layout.addWidget(hero)
 
-        footer = QLabel("Code in Place · Python + PyQt5 · Proyecto Final · Valeria Góngora")
-        footer.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['muted']}; font-family: {FONT_FAMILY}; font-size: 10px;")
-        layout.addWidget(footer, alignment=Qt.AlignLeft)
+        self.home_footer = QLabel(self.t("home_footer"))
+        self.home_footer.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['muted']}; font-family: {FONT_FAMILY}; font-size: 10px;")
+        layout.addWidget(self.home_footer, alignment=Qt.AlignLeft)
 
         self.home_page = page
         self.stacked.addWidget(page)
@@ -470,19 +768,20 @@ class WordHuntApp(QMainWindow):
         back_btn.clicked.connect(lambda: (self._play_ui_click(), self.show_screen("home")))
         top.addWidget(back_btn)
 
-        title = QLabel("SELECCIONA TU RETO")
-        title.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['text']}; font-family: {FONT_FAMILY}; font-size: 32px; font-weight: 900;")
-        top.addWidget(title)
+        self.level_title = QLabel(self.t("level_title"))
+        self.level_title.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['text']}; font-family: {FONT_FAMILY}; font-size: 32px; font-weight: 900;")
+        top.addWidget(self.level_title)
         top.addStretch()
         layout.addLayout(top)
 
-        subtitle = QLabel("Cada nivel cambia el tamaño del tablero, el tiempo y la complejidad del reto.")
-        subtitle.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['soft']}; font-family: {FONT_FAMILY}; font-size: 13px; font-weight: 700;")
-        layout.addWidget(subtitle)
+        self.level_subtitle = QLabel(self.t("level_subtitle"))
+        self.level_subtitle.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['soft']}; font-family: {FONT_FAMILY}; font-size: 13px; font-weight: 700;")
+        layout.addWidget(self.level_subtitle)
 
         grid = QGridLayout()
         grid.setSpacing(16)
         self.level_cards = {}
+        self.level_card_refs = {}
         for number, config in NIVELES.items():
             time_bonus = self._time_bonus_for_level(number)
             card = QFrame()
@@ -491,25 +790,26 @@ class WordHuntApp(QMainWindow):
             card_layout.setContentsMargins(18, 18, 18, 18)
             card_layout.setSpacing(10)
 
-            status = QLabel("NUEVO" if number not in self.level_status else self.level_status[number])
-            status.setStyleSheet(f"background-color: transparent; border: none; color: {config['color']}; font-family: {FONT_FAMILY}; font-size: 10px; font-weight: 900;")
+            status = QLabel(self.t("level_status_completed") if self.level_status.get(number) == "COMPLETADO" else self.t("level_status_new"))
+            status_color = COLORS["green"] if self.level_status.get(number) == "COMPLETADO" else COLORS["cyan"]
+            status.setStyleSheet(f"background-color: transparent; border: none; color: {status_color}; font-family: {FONT_FAMILY}; font-size: 10px; font-weight: 900;")
             card_layout.addWidget(status, alignment=Qt.AlignRight)
 
             title_label = QLabel(f"NIVEL {number}")
             title_label.setStyleSheet(f"background-color: transparent; border: none; color: {config['color']}; font-family: {FONT_FAMILY}; font-size: 11px; font-weight: 900;")
             card_layout.addWidget(title_label)
 
-            nome = QLabel(config["nombre"].upper())
+            nome = QLabel(self._level_name(number).upper())
             nome.setStyleSheet(f"background-color: transparent; border: none; color: {config['color']}; font-family: {FONT_FAMILY}; font-size: 26px; font-weight: 900;")
             card_layout.addWidget(nome)
 
-            info = QLabel(f"Tablero {config['tamano']}x{config['tamano']} • {formatear_tiempo(config['tiempo'])} • {config['vidas']} vidas")
+            info = QLabel(self.t("level_info", size=config["tamano"], time=formatear_tiempo(config["tiempo"]), lives=config["vidas"]))
             info.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['text']}; font-family: {FONT_FAMILY}; font-size: 12px; font-weight: 700;")
             info.setWordWrap(True)
             card_layout.addWidget(info)
 
             tags = QHBoxLayout()
-            hints = QLabel(f"{config['pistas']} pistas")
+            hints = QLabel(f"{config['pistas']} pistas" if self.current_language == "es" else f"{config['pistas']} hints")
             hints.setStyleSheet(f"background-color: {COLORS['surface']}; color: {COLORS['purple']}; border-radius: 8px; padding: 6px 9px; font-family: {FONT_FAMILY}; font-size: 9px; font-weight: 800;")
             points = QLabel(f"{config['puntos_base']} pts")
             points.setStyleSheet(f"background-color: {COLORS['surface']}; color: {COLORS['orange']}; border-radius: 8px; padding: 6px 9px; font-family: {FONT_FAMILY}; font-size: 9px; font-weight: 800;")
@@ -521,7 +821,7 @@ class WordHuntApp(QMainWindow):
             tags.addStretch()
             card_layout.addLayout(tags)
 
-            play_btn = QPushButton("JUGAR")
+            play_btn = QPushButton(self.t("level_button_play"))
             play_btn.setStyleSheet(self._button_style(config["color"], COLORS["surface"]))
             play_btn.clicked.connect(lambda checked=False, n=number: (self._play_ui_click(), self.start_level(n)))
             card_layout.addWidget(play_btn)
@@ -530,6 +830,16 @@ class WordHuntApp(QMainWindow):
             col = (number - 1) % 3
             grid.addWidget(card, row, col)
             self.level_cards[number] = card
+            self.level_card_refs[number] = {
+                "status": status,
+                "title": title_label,
+                "name": nome,
+                "info": info,
+                "hints": hints,
+                "points": points,
+                "bonus": bonus,
+                "button": play_btn,
+            }
 
         layout.addLayout(grid)
         self.level_page = page
@@ -546,7 +856,7 @@ class WordHuntApp(QMainWindow):
         header_layout = QHBoxLayout(header)
         header_layout.setContentsMargins(10, 7, 10, 7)
 
-        back_btn = QPushButton("X SALIR")
+        back_btn = QPushButton(self.t("game_exit"))
         back_btn.setStyleSheet(self._button_style(COLORS["surface"], COLORS["red"]))
         back_btn.clicked.connect(lambda: (self._play_ui_click(), self.show_screen("level")))
         header_layout.addWidget(back_btn)
@@ -608,24 +918,24 @@ class WordHuntApp(QMainWindow):
 
         controls_layout.addStretch()
 
-        self.status_label = QLabel("Selecciona letras para formar una palabra.")
+        self.status_label = QLabel(self.t("game_select_letters"))
         self.status_label.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['soft']}; font-family: {FONT_FAMILY}; font-size: 11px; font-weight: 700;")
         controls_layout.addWidget(self.status_label, alignment=Qt.AlignRight)
         left_layout.addWidget(controls)
 
         actions = QHBoxLayout()
         actions.setSpacing(8)
-        self.confirm_btn = QPushButton("CONFIRMAR")
+        self.confirm_btn = QPushButton(self.t("game_confirm"))
         self.confirm_btn.setStyleSheet(self._button_style(COLORS["green"], COLORS["surface"]))
         self.confirm_btn.clicked.connect(lambda: (self._play_ui_click(), self.confirm_selection()))
         actions.addWidget(self.confirm_btn)
 
-        self.clear_btn = QPushButton("BORRAR")
+        self.clear_btn = QPushButton(self.t("game_clear"))
         self.clear_btn.setStyleSheet(self._button_style(COLORS["red"], COLORS["surface"]))
         self.clear_btn.clicked.connect(lambda: (self._play_ui_click(), self.clear_selection()))
         actions.addWidget(self.clear_btn)
 
-        self.hint_btn = QPushButton("PISTA (0)")
+        self.hint_btn = QPushButton(self.t("game_hint", count=0))
         self.hint_btn.setStyleSheet(self._button_style(COLORS["purple"], COLORS["surface"]))
         self.hint_btn.clicked.connect(lambda: (self._play_ui_click(), self.use_hint()))
         actions.addWidget(self.hint_btn)
@@ -639,12 +949,15 @@ class WordHuntApp(QMainWindow):
         right_layout.setContentsMargins(14, 14, 14, 14)
         right_layout.setSpacing(9)
 
-        right_layout.addWidget(self._label("ESTADÍSTICAS", COLORS["text"], 14, 900), alignment=Qt.AlignLeft)
-        right_layout.addWidget(self._label("Progreso del nivel", COLORS["soft"], 11, 800), alignment=Qt.AlignLeft)
+        self.game_stats_title = self._label(self.t("game_stats_title"), COLORS["text"], 14, 900)
+        self.game_stats_title.setText(self.t("game_stats_title"))
+        right_layout.addWidget(self.game_stats_title, alignment=Qt.AlignLeft)
+        self.game_stats_subtitle = self._label(self.t("game_stats_subtitle"), COLORS["soft"], 11, 800)
+        right_layout.addWidget(self.game_stats_subtitle, alignment=Qt.AlignLeft)
 
-        self.score_card = self._create_stat_card("PUNTOS", "0", COLORS["yellow"])
-        self.combo_card = self._create_stat_card("COMBO", "x0", COLORS["orange"])
-        self.lives_card = self._create_stat_card("VIDAS", "●●●", COLORS["red"])
+        self.score_card = self._create_stat_card(self.t("game_stats_score"), "0", COLORS["yellow"])
+        self.combo_card = self._create_stat_card(self.t("game_stats_combo"), "x0", COLORS["orange"])
+        self.lives_card = self._create_stat_card(self.t("game_stats_lives"), "●●●", COLORS["red"])
         self.score_value_label = self.score_card.value_label
         self.combo_value_label = self.combo_card.value_label
         self.lives_value_label = self.lives_card.value_label
@@ -652,9 +965,9 @@ class WordHuntApp(QMainWindow):
         right_layout.addWidget(self.combo_card)
         right_layout.addWidget(self.lives_card)
 
-        words_title = QLabel("PALABRAS")
-        words_title.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['text']}; font-family: {FONT_FAMILY}; font-size: 13px; font-weight: 900;")
-        right_layout.addWidget(words_title)
+        self.game_words_title = QLabel(self.t("game_words"))
+        self.game_words_title.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['text']}; font-family: {FONT_FAMILY}; font-size: 13px; font-weight: 900;")
+        right_layout.addWidget(self.game_words_title)
 
         self.words_container = QWidget()
         self.words_layout = QVBoxLayout(self.words_container)
@@ -666,7 +979,7 @@ class WordHuntApp(QMainWindow):
         self.words_scroll.setWidget(self.words_container)
         right_layout.addWidget(self.words_scroll)
 
-        self.progress_label = QLabel("0/0 · 0%")
+        self.progress_label = QLabel(self.t("game_progress", found=0, total=0, percent=0))
         self.progress_label.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['cyan']}; font-family: {LETTER_FONT}; font-size: 13px; font-weight: 900;")
         right_layout.addWidget(self.progress_label)
 
@@ -680,36 +993,34 @@ class WordHuntApp(QMainWindow):
     def _build_summary_view(self):
         page = self._page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(40, 28, 40, 28)
-        layout.setSpacing(16)
+        layout.setContentsMargins(40, 18, 40, 18)
+        layout.setSpacing(6)
 
-        self.summary_title = QLabel("VICTORIA")
-        self.summary_title.setStyleSheet(f"color: {COLORS['green']}; font-family: {FONT_FAMILY}; font-size: 58px; font-weight: 800;")
+        self.summary_title = QLabel(self.t("summary_victory"))
         self.summary_title.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.summary_title)
 
-        self.summary_subtitle = QLabel("Has completado el nivel.")
-        self.summary_subtitle.setStyleSheet(f"color: {COLORS['text']}; font-family: {FONT_FAMILY}; font-size: 13px;")
+        self.summary_subtitle = QLabel(self.t("summary_subtitle_victory"))
         self.summary_subtitle.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.summary_subtitle)
 
         summary_cards = QHBoxLayout()
-        self.summary_score = self._create_stat_card("PUNTUACIÓN FINAL", "0", COLORS["yellow"])
-        self.summary_bonus = self._create_stat_card("BONUS", "0", COLORS["cyan"])
-        self.summary_combo = self._create_stat_card("MEJOR COMBO", "x0", COLORS["orange"])
+        self.summary_score = self._create_stat_card(self.t("summary_score"), "0", COLORS["yellow"])
+        self.summary_bonus = self._create_stat_card(self.t("summary_bonus"), "0", COLORS["cyan"])
+        self.summary_combo = self._create_stat_card(self.t("summary_combo"), "x0", COLORS["orange"])
         summary_cards.addWidget(self.summary_score)
         summary_cards.addWidget(self.summary_bonus)
         summary_cards.addWidget(self.summary_combo)
         layout.addLayout(summary_cards)
 
         action_row = QHBoxLayout()
-        retry_btn = QPushButton("REINTENTAR")
+        retry_btn = QPushButton(self.t("summary_retry"))
         retry_btn.setStyleSheet(self._button_style(COLORS["cyan"], COLORS["surface"]))
         retry_btn.clicked.connect(lambda: (self._play_ui_click(), self.retry_level()))
-        next_btn = QPushButton("SIGUIENTE")
+        next_btn = QPushButton(self.t("summary_next"))
         next_btn.setStyleSheet(self._button_style(COLORS["green"], COLORS["surface"]))
         next_btn.clicked.connect(lambda: (self._play_ui_click(), self.next_level()))
-        menu_btn = QPushButton("MENÚ")
+        menu_btn = QPushButton(self.t("summary_menu"))
         menu_btn.setStyleSheet(self._button_style(COLORS["purple"], COLORS["surface"]))
         menu_btn.clicked.connect(lambda: (self._play_ui_click(), self.show_screen("home")))
         action_row.addWidget(retry_btn)
@@ -723,6 +1034,22 @@ class WordHuntApp(QMainWindow):
         self.confetti_layer.setStyleSheet("background-color: transparent;")
         self.confetti_layer.hide()
         self.confetti_particles = []
+
+        # Ajuste de estilos dinámico según resultado
+        def update_summary_styles():
+            if getattr(self, "summary_result", "victory") == "victory":
+                self.summary_title.setText(self.t("summary_victory"))
+                self.summary_title.setStyleSheet(f"color: {COLORS['green']}; font-family: {LETTER_FONT}; font-size: 62px; font-weight: 900; letter-spacing: 2px; text-shadow: 0 2px 16px {COLORS['green']};")
+                self.summary_subtitle.setText(self.t("summary_subtitle_victory"))
+                self.summary_subtitle.setStyleSheet(f"color: {COLORS['cyan']}; font-family: {FONT_FAMILY}; font-size: 18px; font-weight: 800; margin-bottom: 0px;")
+                self._launch_confetti()
+            else:
+                self.summary_title.setText(self.t("summary_defeat"))
+                self.summary_title.setStyleSheet(f"color: {COLORS['pink']}; font-family: {LETTER_FONT}; font-size: 62px; font-weight: 900; letter-spacing: 2px; text-shadow: 0 2px 16px {COLORS['pink']};")
+                self.summary_subtitle.setText(self.t("summary_subtitle_defeat"))
+                self.summary_subtitle.setStyleSheet(f"color: {COLORS['soft']}; font-family: {FONT_FAMILY}; font-size: 16px; font-weight: 700; margin-bottom: 0px;")
+                self.confetti_layer.hide()
+        self.update_summary_styles = update_summary_styles
 
         self.summary_page = page
         self.stacked.addWidget(page)
@@ -844,6 +1171,7 @@ class WordHuntApp(QMainWindow):
         value_label.setStyleSheet(f"background-color: transparent; border: none; color: {accent}; font-family: {LETTER_FONT}; font-size: 24px; font-weight: 900;")
         layout.addWidget(title_label)
         layout.addWidget(value_label)
+        card.title_label = title_label
         card.value_label = value_label
         return card
 
@@ -874,10 +1202,10 @@ class WordHuntApp(QMainWindow):
 
     def refresh_level_cards(self):
         for number, card in self.level_cards.items():
-            status = "COMPLETADO" if self.level_status.get(number) == "COMPLETADO" else "NUEVO"
-            status_color = COLORS["green"] if status == "COMPLETADO" else COLORS["cyan"]
+            status = self.t("level_status_completed") if self.level_status.get(number) == "COMPLETADO" else self.t("level_status_new")
+            status_color = COLORS["green"] if self.level_status.get(number) == "COMPLETADO" else COLORS["cyan"]
             for child in card.findChildren(QLabel):
-                if child.text() == "NUEVO" or child.text() == "COMPLETADO":
+                if child.text() in [self.t("level_status_new"), self.t("level_status_completed")]:
                     child.setText(status)
                     child.setStyleSheet(f"background-color: transparent; border: none; color: {status_color}; font-family: {FONT_FAMILY}; font-size: 10px; font-weight: 900;")
                     break
@@ -900,13 +1228,13 @@ class WordHuntApp(QMainWindow):
         self.max_lives = config["vidas"]
         self.hints_left = config["pistas"]
         self.time_left = config["tiempo"]
-        self.level_header.setText(f"NIVEL {level_number}: {config['nombre'].upper()}")
+        self.level_header.setText(f"{self.t('level_header', level=level_number, name=self._level_name(level_number).upper())}")
         self.level_header.setStyleSheet(f"background-color: transparent; border: none; color: {config['color']}; font-family: {FONT_FAMILY}; font-size: 19px; font-weight: 900;")
         self.timer_label.setText(formatear_tiempo(self.time_left))
         self.timer_label.setStyleSheet(f"background-color: {COLORS['surface']}; color: {config['color']}; border: 1px solid {config['color']}; border-radius: 8px; padding: 7px 14px; font-family: {LETTER_FONT}; font-size: 24px; font-weight: 900;")
-        self.hint_btn.setText(f"PISTA ({self.hints_left})")
+        self.hint_btn.setText(self.t("game_hint", count=self.hints_left))
         self.word_preview.setText("")
-        self.status_label.setText("Selecciona letras para formar una palabra.")
+        self.status_label.setText(self.t("game_select_letters"))
         self._build_board()
         self._refresh_sidebar()
         self._refresh_progress()
@@ -1039,7 +1367,7 @@ class WordHuntApp(QMainWindow):
         self.selected_positions = []
         self.selected_letters = []
         self.word_preview.setText("")
-        self.status_label.setText("Selecciona letras para formar una palabra.")
+        self.status_label.setText(self.t("game_select_letters"))
         self._rebuild_board_visuals()
 
     def confirm_selection(self):
@@ -1067,7 +1395,7 @@ class WordHuntApp(QMainWindow):
         self.word_preview.setText("")
         self.selected_positions = []
         self.selected_letters = []
-        self.status_label.setText(f"¡{word} encontrada! +{gained} puntos y +{time_bonus}s.")
+        self.status_label.setText(self.t("game_word_found", word=word, gained=gained, bonus=time_bonus))
         self._rebuild_board_visuals()
         self._update_time_bar()
         if len(self.found_words) == len(self.hidden_words):
@@ -1077,7 +1405,7 @@ class WordHuntApp(QMainWindow):
         self._play_effect(self.error_sound)
         self.lives -= 1
         self.combo = 0
-        self.status_label.setText("Palabra incorrecta. Pierdes una vida.")
+        self.status_label.setText(self.t("game_word_wrong"))
         self._refresh_sidebar()
         self.word_preview.setText("")
         self.selected_positions = []
@@ -1097,9 +1425,9 @@ class WordHuntApp(QMainWindow):
         row, col = self.hidden_positions[word][0]
         self.hint_positions.add((row, col))
         self.hint_sources[(row, col)] = word
-        self.status_label.setText(f"Pista: se resaltó una letra de {word}.")
+        self.status_label.setText(self.t("game_hint_used", word=word))
         self.hints_left -= 1
-        self.hint_btn.setText(f"PISTA ({self.hints_left})")
+        self.hint_btn.setText(self.t("game_hint", count=self.hints_left))
         self._rebuild_board_visuals()
 
     def _refresh_sidebar(self):
@@ -1111,7 +1439,7 @@ class WordHuntApp(QMainWindow):
         found = len(self.found_words)
         total = len(self.hidden_words)
         percent = int((found / total) * 100) if total else 0
-        self.progress_label.setText(f"{found}/{total} · {percent}%")
+        self.progress_label.setText(self.t("game_progress", found=found, total=total, percent=percent))
 
         while self.words_layout.count():
             item = self.words_layout.takeAt(0)
@@ -1131,9 +1459,11 @@ class WordHuntApp(QMainWindow):
             word_label.setStyleSheet(f"background-color: transparent; border: none; color: {accent}; font-family: {LETTER_FONT}; font-size: 13px; font-weight: 900;")
             row_layout.addWidget(word_label)
 
-            status_label = QLabel("ENCONTRADA" if word in self.found_words else "OCULTA")
+            is_found = word in self.found_words
+            status_label = QLabel(self.t("game_found") if is_found else self.t("game_hidden"))
+            status_color = COLORS["green"] if is_found else COLORS["red"]
             status_label.setStyleSheet(
-                f"background-color: transparent; border: none; color: {COLORS['text']}; font-family: {FONT_FAMILY}; font-size: 9px; font-weight: 900;"
+                f"background-color: transparent; border: none; color: {status_color}; font-family: {FONT_FAMILY}; font-size: 9px; font-weight: 900;"
             )
             row_layout.addStretch()
             row_layout.addWidget(status_label)
@@ -1169,18 +1499,19 @@ class WordHuntApp(QMainWindow):
         bonus_lives = self.lives * 50
         bonus_perfect = 200 if victory and self.lives == self.max_lives else 0
         final_score = self.score + bonus_time + bonus_lives + bonus_perfect
+        self.summary_result = "victory" if victory else "defeat"
         if victory:
             self._play_effect(self.level_complete_sound)
             self.level_status[self.current_level] = "COMPLETADO"
-            self.summary_title.setText("VICTORIA")
+            self.summary_title.setText(self.t("summary_victory"))
             self.summary_title.setStyleSheet(f"color: {COLORS['green']}; font-family: {FONT_FAMILY}; font-size: 58px; font-weight: 800;")
-            self.summary_subtitle.setText("Has completado el nivel y sumaste bonificaciones.")
+            self.summary_subtitle.setText(self.t("summary_subtitle_victory"))
             self.summary_score.value_label.setText(str(final_score))
             self._launch_confetti()
         else:
-            self.summary_title.setText("DERROTA")
+            self.summary_title.setText(self.t("summary_defeat"))
             self.summary_title.setStyleSheet(f"color: {COLORS['red']}; font-family: {FONT_FAMILY}; font-size: 58px; font-weight: 800;")
-            self.summary_subtitle.setText("Se agotó el tiempo o te quedaste sin vidas.")
+            self.summary_subtitle.setText(self.t("summary_subtitle_defeat"))
             self.summary_score.value_label.setText(str(self.score))
             self.confetti_layer.hide()
         self.summary_bonus.value_label.setText(f"+{bonus_time + bonus_lives + bonus_perfect}")
