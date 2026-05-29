@@ -205,7 +205,7 @@ def normalizar_paso(valor):
 class WordHuntApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Word Hunt • Proyecto Final")
+        self.setWindowTitle("Word Hunt • Proyecto Final • Valeria Góngora")
         self.resize(1220, 760)
         self.setMinimumSize(1040, 720)
         self.setStyleSheet(f"QMainWindow {{ background-color: {COLORS['bg']}; }}")
@@ -241,8 +241,29 @@ class WordHuntApp(QMainWindow):
         self.confetti_timer = QTimer(self)
         self.confetti_timer.timeout.connect(self._animate_confetti)
 
-        self.success_sound = None
-        self.error_sound = None
+        self._audio_temp_paths = []
+        self.success_sound = self._create_sound_effect([
+            (659, 120),
+            (784, 120),
+            (1047, 220),
+        ], volume=0.18)
+        self.error_sound = self._create_sound_effect([
+            (220, 140),
+            (196, 140),
+            (174, 260),
+        ], volume=0.20)
+        self.level_complete_sound = self._create_sound_effect([
+            (523, 100),
+            (659, 100),
+            (784, 120),
+            (1047, 220),
+            (988, 180),
+            (1047, 220),
+        ], volume=0.18)
+        self.ui_click_sound = self._create_sound_effect([
+            (698, 45),
+            (784, 45),
+        ], volume=0.10)
 
         self.stacked = QStackedWidget()
         self.setCentralWidget(self.stacked)
@@ -418,10 +439,10 @@ class WordHuntApp(QMainWindow):
         buttons_row = QHBoxLayout()
         start_btn = QPushButton("INICIAR PARTIDA")
         start_btn.setStyleSheet(self._button_style(COLORS["green"], COLORS["surface"]))
-        start_btn.clicked.connect(lambda: self.show_screen("level"))
+        start_btn.clicked.connect(lambda: (self._play_ui_click(), self.show_screen("level")))
         guide_btn = QPushButton("ELEGIR NIVEL")
         guide_btn.setStyleSheet(self._button_style(COLORS["cyan"], COLORS["surface"]))
-        guide_btn.clicked.connect(lambda: self.show_screen("level"))
+        guide_btn.clicked.connect(lambda: (self._play_ui_click(), self.show_screen("level")))
         buttons_row.addWidget(start_btn)
         buttons_row.addWidget(guide_btn)
         buttons_row.addStretch()
@@ -430,7 +451,7 @@ class WordHuntApp(QMainWindow):
         layout.addWidget(header)
         layout.addWidget(hero)
 
-        footer = QLabel("Code in Place · Python + PyQt5 · Proyecto Final")
+        footer = QLabel("Code in Place · Python + PyQt5 · Proyecto Final · Valeria Góngora")
         footer.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['muted']}; font-family: {FONT_FAMILY}; font-size: 10px;")
         layout.addWidget(footer, alignment=Qt.AlignLeft)
 
@@ -446,7 +467,7 @@ class WordHuntApp(QMainWindow):
         top = QHBoxLayout()
         back_btn = QPushButton("< MENÚ")
         back_btn.setStyleSheet(self._button_style(COLORS["panel"], COLORS["cyan"]))
-        back_btn.clicked.connect(lambda: self.show_screen("home"))
+        back_btn.clicked.connect(lambda: (self._play_ui_click(), self.show_screen("home")))
         top.addWidget(back_btn)
 
         title = QLabel("SELECCIONA TU RETO")
@@ -502,7 +523,7 @@ class WordHuntApp(QMainWindow):
 
             play_btn = QPushButton("JUGAR")
             play_btn.setStyleSheet(self._button_style(config["color"], COLORS["surface"]))
-            play_btn.clicked.connect(lambda checked=False, n=number: self.start_level(n))
+            play_btn.clicked.connect(lambda checked=False, n=number: (self._play_ui_click(), self.start_level(n)))
             card_layout.addWidget(play_btn)
 
             row = (number - 1) // 3
@@ -527,7 +548,7 @@ class WordHuntApp(QMainWindow):
 
         back_btn = QPushButton("X SALIR")
         back_btn.setStyleSheet(self._button_style(COLORS["surface"], COLORS["red"]))
-        back_btn.clicked.connect(lambda: self.show_screen("level"))
+        back_btn.clicked.connect(lambda: (self._play_ui_click(), self.show_screen("level")))
         header_layout.addWidget(back_btn)
 
         self.level_header = QLabel("")
@@ -596,17 +617,17 @@ class WordHuntApp(QMainWindow):
         actions.setSpacing(8)
         self.confirm_btn = QPushButton("CONFIRMAR")
         self.confirm_btn.setStyleSheet(self._button_style(COLORS["green"], COLORS["surface"]))
-        self.confirm_btn.clicked.connect(self.confirm_selection)
+        self.confirm_btn.clicked.connect(lambda: (self._play_ui_click(), self.confirm_selection()))
         actions.addWidget(self.confirm_btn)
 
         self.clear_btn = QPushButton("BORRAR")
         self.clear_btn.setStyleSheet(self._button_style(COLORS["red"], COLORS["surface"]))
-        self.clear_btn.clicked.connect(self.clear_selection)
+        self.clear_btn.clicked.connect(lambda: (self._play_ui_click(), self.clear_selection()))
         actions.addWidget(self.clear_btn)
 
         self.hint_btn = QPushButton("PISTA (0)")
         self.hint_btn.setStyleSheet(self._button_style(COLORS["purple"], COLORS["surface"]))
-        self.hint_btn.clicked.connect(self.use_hint)
+        self.hint_btn.clicked.connect(lambda: (self._play_ui_click(), self.use_hint()))
         actions.addWidget(self.hint_btn)
         left_layout.addLayout(actions)
 
@@ -684,13 +705,13 @@ class WordHuntApp(QMainWindow):
         action_row = QHBoxLayout()
         retry_btn = QPushButton("REINTENTAR")
         retry_btn.setStyleSheet(self._button_style(COLORS["cyan"], COLORS["surface"]))
-        retry_btn.clicked.connect(self.retry_level)
+        retry_btn.clicked.connect(lambda: (self._play_ui_click(), self.retry_level()))
         next_btn = QPushButton("SIGUIENTE")
         next_btn.setStyleSheet(self._button_style(COLORS["green"], COLORS["surface"]))
-        next_btn.clicked.connect(self.next_level)
+        next_btn.clicked.connect(lambda: (self._play_ui_click(), self.next_level()))
         menu_btn = QPushButton("MENÚ")
         menu_btn.setStyleSheet(self._button_style(COLORS["purple"], COLORS["surface"]))
-        menu_btn.clicked.connect(lambda: self.show_screen("home"))
+        menu_btn.clicked.connect(lambda: (self._play_ui_click(), self.show_screen("home")))
         action_row.addWidget(retry_btn)
         action_row.addWidget(next_btn)
         action_row.addWidget(menu_btn)
@@ -755,6 +776,58 @@ class WordHuntApp(QMainWindow):
         if not self.confetti_particles:
             self.confetti_timer.stop()
             self.confetti_layer.hide()
+
+    def _write_wave(self, samples, sample_rate, volume):
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+        temp_file.close()
+        file_path = temp_file.name
+        with wave.open(file_path, "wb") as wav_file:
+            wav_file.setnchannels(1)
+            wav_file.setsampwidth(2)
+            wav_file.setframerate(sample_rate)
+            sample_values = []
+            for sample in samples:
+                sample_value = max(-32767, min(32767, int(sample * 32767 * volume)))
+                sample_values.append(sample_value)
+            wav_file.writeframes(struct.pack("<" + "h" * len(sample_values), *sample_values))
+        self._audio_temp_paths.append(file_path)
+        return file_path
+
+    def _create_sound_effect(self, notes, volume=0.2, sample_rate=44100):
+        samples = []
+        for frequency, duration_ms in notes:
+            note_samples = int(sample_rate * duration_ms / 1000)
+            attack = max(1, int(note_samples * 0.08))
+            release = max(1, int(note_samples * 0.1))
+            for index in range(note_samples):
+                phase = index / sample_rate
+                raw = math.sin(2 * math.pi * frequency * phase)
+                envelope = min((index + 1) / attack, (note_samples - index) / release)
+                envelope = max(0.0, min(1.0, envelope))
+                samples.append(raw * envelope)
+
+        file_path = self._write_wave(samples, sample_rate, volume)
+        effect = QSoundEffect(self)
+        effect.setSource(QUrl.fromLocalFile(file_path))
+        effect.setVolume(volume)
+        return effect
+
+    def _play_effect(self, effect):
+        if effect is None:
+            return
+        effect.stop()
+        effect.play()
+
+    def _play_ui_click(self):
+        self._play_effect(self.ui_click_sound)
+
+    def closeEvent(self, event):
+        for path in self._audio_temp_paths:
+            try:
+                os.remove(path)
+            except FileNotFoundError:
+                pass
+        super().closeEvent(event)
 
     def _create_stat_card(self, title, value, accent):
         card = QFrame()
@@ -980,6 +1053,7 @@ class WordHuntApp(QMainWindow):
 
     def _register_word(self, word):
         self.found_words.append(word)
+        self._play_effect(self.success_sound)
         self.combo += 1
         self.best_combo = max(self.best_combo, self.combo)
         config = NIVELES[self.current_level]
@@ -1000,6 +1074,7 @@ class WordHuntApp(QMainWindow):
             self.finish_level(victory=True)
 
     def _wrong_word(self):
+        self._play_effect(self.error_sound)
         self.lives -= 1
         self.combo = 0
         self.status_label.setText("Palabra incorrecta. Pierdes una vida.")
@@ -1095,6 +1170,7 @@ class WordHuntApp(QMainWindow):
         bonus_perfect = 200 if victory and self.lives == self.max_lives else 0
         final_score = self.score + bonus_time + bonus_lives + bonus_perfect
         if victory:
+            self._play_effect(self.level_complete_sound)
             self.level_status[self.current_level] = "COMPLETADO"
             self.summary_title.setText("VICTORIA")
             self.summary_title.setStyleSheet(f"color: {COLORS['green']}; font-family: {FONT_FAMILY}; font-size: 58px; font-weight: 800;")
