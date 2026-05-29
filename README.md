@@ -13,7 +13,7 @@ Este proyecto fue creado como una aplicación de escritorio utilizando interfaz 
 
 ## 👩‍💻 Autora
 
-**Valeria Estefanía Góngora Torres**
+**Valeria Góngora**
 
 ---
 
@@ -144,4 +144,4 @@ https://youtube.com/tu-video-aqui
 
 Desarrollado por:
 
-**Valeria Estefanía Góngora Torres**
+**Valeria Góngora**
