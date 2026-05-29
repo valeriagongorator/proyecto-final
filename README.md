@@ -8,4 +8,3 @@ python main.py
 
 - `src/` contiene la aplicación.
 - `tests/` contiene verificaciones básicas.
-- `docs/` contiene documentación adicional.

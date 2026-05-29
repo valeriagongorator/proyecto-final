@@ -1,19 +1,25 @@
+import math
+import os
 import random
+import struct
 import string
 import sys
+import tempfile
+import wave
 
-from PyQt5.QtCore import Qt, QTimer, pyqtSignal
-from PyQt5.QtGui import QColor, QFont, QPalette
+from PyQt5.QtCore import Qt, QTimer, QUrl
+from PyQt5.QtGui import QColor
+from PyQt5.QtMultimedia import QSoundEffect
 from PyQt5.QtWidgets import (
     QApplication,
     QFrame,
+    QGraphicsDropShadowEffect,
     QGridLayout,
     QHBoxLayout,
     QLabel,
     QMainWindow,
     QPushButton,
     QScrollArea,
-    QSizePolicy,
     QStackedWidget,
     QVBoxLayout,
     QWidget,
@@ -82,6 +88,30 @@ NIVELES = {
         "puntos_base": 50,
     },
 }
+
+FONT_FAMILY = "'Avenir Next', 'Helvetica Neue', 'Menlo', 'Consolas', sans-serif"
+LETTER_FONT = "'Menlo', 'Consolas', monospace"
+COLORS = {
+    "bg": "#0b1020",
+    "surface": "#101827",
+    "panel": "#172033",
+    "line": "#2f3d5c",
+    "muted": "#565f89",
+    "text": "#d7e3ff",
+    "letter": "#eef6ff",
+    "soft": "#9fb4d9",
+    "cyan": "#00d9ff",
+    "green": "#9ece6a",
+    "yellow": "#e0af68",
+    "orange": "#ff9e64",
+    "pink": "#ff79c6",
+    "purple": "#bb9af7",
+    "red": "#f7768e",
+    "neon": "#3bffda",
+}
+EASY_TIME_BONUS_PER_WORD = 5
+DEFAULT_TIME_BONUS_PER_WORD = 20
+EASY_BONUS_LEVELS = {1, 2}
 
 
 def crear_matriz_vacia(tamano):
@@ -166,12 +196,19 @@ def formatear_tiempo(segundos):
     return f"{minutos:02d}:{segs:02d}"
 
 
+def normalizar_paso(valor):
+    if valor == 0:
+        return 0
+    return 1 if valor > 0 else -1
+
+
 class WordHuntApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Word Hunt • Proyecto Final")
-        self.resize(1180, 820)
-        self.setMinimumSize(1050, 760)
+        self.resize(1220, 760)
+        self.setMinimumSize(1040, 720)
+        self.setStyleSheet(f"QMainWindow {{ background-color: {COLORS['bg']}; }}")
 
         # Estado global del juego
         self.best_score = 0
@@ -204,6 +241,10 @@ class WordHuntApp(QMainWindow):
         self.confetti_timer = QTimer(self)
         self.confetti_timer.timeout.connect(self._animate_confetti)
 
+        self.success_sound = None
+        self.error_sound = None
+        self._setup_sounds()
+
         self.stacked = QStackedWidget()
         self.setCentralWidget(self.stacked)
 
@@ -214,24 +255,77 @@ class WordHuntApp(QMainWindow):
 
         self.show_screen("home")
 
-    def _card_style(self, color, bg="#24283b"):
+    def _card_style(self, color, bg=None):
+        bg = bg or COLORS["panel"]
         return (
-            f"QFrame {{ background-color: {bg}; border: 1px solid {color}; border-radius: 20px; }}"
-            f"QFrame:hover {{ border: 2px solid {color}; }}"
+            f"background-color: {bg}; border: 1px solid {color}; border-radius: 10px;"
         )
 
-    def _button_style(self, bg_color, text_color="#1a1b26"):
+    def _button_style(self, bg_color, text_color=None):
+        text_color = text_color or COLORS["surface"]
         return (
-            f"QPushButton {{ background-color: {bg_color}; color: {text_color}; border-radius: 14px; "
-            "padding: 12px 16px; font-weight: 700; font-size: 13px; }"
-            f"QPushButton:hover {{ background-color: #d0d7ff; }}"
+            f"QPushButton {{ background-color: {bg_color}; color: {text_color}; border: 1px solid {bg_color}; border-radius: 8px; "
+            f"padding: 8px 12px; font-family: {FONT_FAMILY}; font-weight: 800; font-size: 12px; }}"
+            f"QPushButton:hover {{ background-color: {COLORS['neon']}; border-color: {COLORS['neon']}; }}"
+            "QPushButton:pressed { padding-top: 9px; padding-bottom: 7px; }"
         )
+
+    def _chip_style(self, color):
+        return (
+            f"background-color: {COLORS['surface']}; color: {color}; border: 1px solid {color}; "
+            f"border-radius: 8px; padding: 7px 10px; font-family: {FONT_FAMILY}; font-size: 10px; font-weight: 800;"
+        )
+
+    def _page(self):
+        page = QWidget()
+        page.setStyleSheet(
+            f"background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {COLORS['bg']}, stop:0.48 #11192b, stop:1 #080b14);"
+        )
+        return page
+
+    def _label(self, text, color=None, size=12, weight=500):
+        label = QLabel(text)
+        label.setStyleSheet(
+            f"background-color: transparent; border: none; color: {color or COLORS['text']}; "
+            f"font-family: {FONT_FAMILY}; font-size: {size}px; font-weight: {weight};"
+        )
+        return label
+
+    def _feature_row(self, title, value, accent):
+        row = QFrame()
+        row.setStyleSheet(
+            f"background-color: {COLORS['surface']}; border: 1px solid {COLORS['line']}; border-radius: 8px;"
+        )
+        layout = QHBoxLayout(row)
+        layout.setContentsMargins(12, 9, 12, 9)
+        label = self._label(title, COLORS["soft"], 11, 800)
+        result = self._label(value, accent, 13, 900)
+        result.setStyleSheet(
+            f"background-color: transparent; border: none; color: {accent}; "
+            f"font-family: {LETTER_FONT}; font-size: 13px; font-weight: 900;"
+        )
+        layout.addWidget(label)
+        layout.addStretch()
+        layout.addWidget(result)
+        return row
+
+    def _add_glow(self, widget, color, blur=24):
+        glow = QGraphicsDropShadowEffect(widget)
+        glow.setBlurRadius(blur)
+        glow.setColor(QColor(color))
+        glow.setOffset(0, 0)
+        widget.setGraphicsEffect(glow)
+
+    def _time_bonus_for_level(self, level_number):
+        if level_number in EASY_BONUS_LEVELS:
+            return EASY_TIME_BONUS_PER_WORD
+        return DEFAULT_TIME_BONUS_PER_WORD
 
     def _build_home_view(self):
-        page = QWidget()
+        page = self._page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(40, 30, 40, 30)
-        layout.setSpacing(24)
+        layout.setContentsMargins(42, 30, 42, 24)
+        layout.setSpacing(16)
 
         header = QFrame()
         header.setStyleSheet("background: transparent;")
@@ -239,30 +333,39 @@ class WordHuntApp(QMainWindow):
         header_layout.setContentsMargins(0, 0, 0, 0)
 
         title = QLabel("WORD HUNT")
-        title.setStyleSheet("color: #7dcfff; font-family: 'Menlo'; font-size: 68px; font-weight: 800;")
+        title.setStyleSheet(f"color: {COLORS['cyan']}; font-family: {LETTER_FONT}; font-size: 64px; font-weight: 900;")
         title.setAlignment(Qt.AlignCenter)
+        self._add_glow(title, COLORS["cyan"], 36)
         header_layout.addWidget(title)
 
-        subtitle = QLabel("Sopa de letras interactiva con niveles, pistas, combos y un sistema de puntaje visual.")
-        subtitle.setStyleSheet("color: #c0caf5; font-family: 'Menlo'; font-size: 14px;")
+        subtitle = QLabel("Sistema de búsqueda · combos · pistas · bonus de tiempo")
+        subtitle.setStyleSheet(f"color: {COLORS['soft']}; font-family: {FONT_FAMILY}; font-size: 14px; font-weight: 700;")
         subtitle.setAlignment(Qt.AlignCenter)
         header_layout.addWidget(subtitle)
 
         hero = QFrame()
-        hero.setStyleSheet("background-color: #24283b; border-radius: 26px; border: 1px solid #414868;")
+        hero.setStyleSheet(f"background-color: rgba(23, 32, 51, 235); border-radius: 12px; border: 1px solid {COLORS['cyan']};")
+        hero.setMaximumHeight(610)
         hero_layout = QVBoxLayout(hero)
-        hero_layout.setContentsMargins(24, 24, 24, 24)
+        hero_layout.setContentsMargins(24, 20, 24, 20)
+        hero_layout.setSpacing(16)
 
         hero_badges = QHBoxLayout()
         hero_badges.setSpacing(10)
-        badge1 = QLabel("PROYECTO FINAL")
-        badge1.setStyleSheet("background-color: #1a1b26; color: #7dcfff; border-radius: 999px; padding: 8px 12px; font-size: 10px; font-family: 'Menlo'; font-weight: 800;")
-        badge2 = QLabel("PYQT5 · MAC")
-        badge2.setStyleSheet("background-color: #1a1b26; color: #e0af68; border-radius: 999px; padding: 8px 12px; font-size: 10px; font-family: 'Menlo'; font-weight: 800;")
+        badge1 = QLabel("MISSION CONTROL")
+        badge1.setStyleSheet(self._chip_style(COLORS["neon"]))
+        badge2 = QLabel("PYQT5 CORE")
+        badge2.setStyleSheet(self._chip_style(COLORS["yellow"]))
+        badge3 = QLabel("SYNC ONLINE")
+        badge3.setStyleSheet(self._chip_style(COLORS["green"]))
         hero_badges.addWidget(badge1)
         hero_badges.addWidget(badge2)
+        hero_badges.addWidget(badge3)
         hero_badges.addStretch()
         hero_layout.addLayout(hero_badges)
+
+        center_row = QHBoxLayout()
+        center_row.setSpacing(24)
 
         hero_grid = QWidget()
         preview_layout = QGridLayout(hero_grid)
@@ -279,29 +382,46 @@ class WordHuntApp(QMainWindow):
                 cell = QLabel(letter)
                 cell.setAlignment(Qt.AlignCenter)
                 cell.setStyleSheet(
-                    "QLabel { background-color: #414868; color: #c0caf5; border-radius: 10px; min-width: 38px; min-height: 38px; font-family: 'Menlo'; font-weight: 800; font-size: 16px; }"
+                    f"background-color: {COLORS['surface']}; color: {COLORS['letter']}; border: 1px solid {COLORS['cyan']}; "
+                    f"border-radius: 7px; min-width: 46px; min-height: 46px; font-family: {LETTER_FONT}; font-weight: 900; font-size: 20px;"
                 )
+                self._add_glow(cell, COLORS["cyan"], 12)
                 preview_layout.addWidget(cell, r, c)
-        hero_layout.addWidget(hero_grid)
 
-        hero_desc = QLabel("Busca palabras, acumula combos, usa pistas y avanza por siete niveles de dificultad.")
-        hero_desc.setStyleSheet("color: #a9b1d6; font-family: 'Menlo'; font-size: 12px;")
-        hero_layout.addWidget(hero_desc)
+        intro_col = QVBoxLayout()
+        intro_col.setSpacing(12)
+        hero_desc = QLabel("Explora la matriz, marca rutas correctas y activa bonos de tiempo según la dificultad.")
+        hero_desc.setWordWrap(True)
+        hero_desc.setStyleSheet(
+            f"background-color: transparent; border: none; color: {COLORS['text']}; "
+            f"font-family: {FONT_FAMILY}; font-size: 18px; font-weight: 900;"
+        )
+        intro_col.addWidget(hero_desc)
+        intro_col.addWidget(self._feature_row("RETOS", "6 NIVELES", COLORS["cyan"]))
+        intro_col.addWidget(self._feature_row("BONUS", "+5s / +20s", COLORS["neon"]))
+        intro_col.addWidget(self._feature_row("OBJETIVO", "COMBO ALTO", COLORS["yellow"]))
+        center_row.addWidget(hero_grid, 0, Qt.AlignLeft)
+        center_row.addLayout(intro_col, 1)
+        hero_layout.addLayout(center_row)
 
         stats_row = QHBoxLayout()
         stats_row.setSpacing(10)
-        stats_row.addWidget(self._create_stat_card("RECORD", str(self.best_score), "#e0af68"))
-        stats_row.addWidget(self._create_stat_card("PARTIDAS", str(self.games_played), "#7dcfff"))
-        stats_row.addWidget(self._create_stat_card("PALABRAS", str(self.total_words_found), "#9ece6a"))
-        stats_row.addWidget(self._create_stat_card("NIVELES", "0/6", "#bb9af7"))
+        self.home_score_card = self._create_stat_card("RECORD", str(self.best_score), COLORS["yellow"])
+        self.home_games_card = self._create_stat_card("PARTIDAS", str(self.games_played), COLORS["cyan"])
+        self.home_words_card = self._create_stat_card("PALABRAS", str(self.total_words_found), COLORS["green"])
+        self.home_levels_card = self._create_stat_card("NIVELES", "0/6", COLORS["purple"])
+        stats_row.addWidget(self.home_score_card)
+        stats_row.addWidget(self.home_games_card)
+        stats_row.addWidget(self.home_words_card)
+        stats_row.addWidget(self.home_levels_card)
         hero_layout.addLayout(stats_row)
 
         buttons_row = QHBoxLayout()
         start_btn = QPushButton("INICIAR PARTIDA")
-        start_btn.setStyleSheet(self._button_style("#9ece6a", "#1a1b26"))
+        start_btn.setStyleSheet(self._button_style(COLORS["green"], COLORS["surface"]))
         start_btn.clicked.connect(lambda: self.show_screen("level"))
-        guide_btn = QPushButton("VER GUÍA")
-        guide_btn.setStyleSheet(self._button_style("#7dcfff", "#1a1b26"))
+        guide_btn = QPushButton("ELEGIR NIVEL")
+        guide_btn.setStyleSheet(self._button_style(COLORS["cyan"], COLORS["surface"]))
         guide_btn.clicked.connect(lambda: self.show_screen("level"))
         buttons_row.addWidget(start_btn)
         buttons_row.addWidget(guide_btn)
@@ -312,73 +432,77 @@ class WordHuntApp(QMainWindow):
         layout.addWidget(hero)
 
         footer = QLabel("Code in Place · Python + PyQt5 · Proyecto Final")
-        footer.setStyleSheet("color: #565f89; font-family: 'Menlo'; font-size: 10px;")
+        footer.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['muted']}; font-family: {FONT_FAMILY}; font-size: 10px;")
         layout.addWidget(footer, alignment=Qt.AlignLeft)
 
         self.home_page = page
         self.stacked.addWidget(page)
 
     def _build_level_view(self):
-        page = QWidget()
+        page = self._page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(30, 26, 30, 26)
-        layout.setSpacing(18)
+        layout.setContentsMargins(34, 28, 34, 28)
+        layout.setSpacing(16)
 
         top = QHBoxLayout()
         back_btn = QPushButton("< MENÚ")
-        back_btn.setStyleSheet(self._button_style("#24283b", "#7dcfff"))
+        back_btn.setStyleSheet(self._button_style(COLORS["panel"], COLORS["cyan"]))
         back_btn.clicked.connect(lambda: self.show_screen("home"))
         top.addWidget(back_btn)
 
         title = QLabel("SELECCIONA TU RETO")
-        title.setStyleSheet("color: #c0caf5; font-family: 'Menlo'; font-size: 32px; font-weight: 800;")
+        title.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['text']}; font-family: {FONT_FAMILY}; font-size: 32px; font-weight: 900;")
         top.addWidget(title)
         top.addStretch()
         layout.addLayout(top)
 
         subtitle = QLabel("Cada nivel cambia el tamaño del tablero, el tiempo y la complejidad del reto.")
-        subtitle.setStyleSheet("color: #565f89; font-family: 'Menlo'; font-size: 11px;")
+        subtitle.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['soft']}; font-family: {FONT_FAMILY}; font-size: 13px; font-weight: 700;")
         layout.addWidget(subtitle)
 
         grid = QGridLayout()
         grid.setSpacing(16)
         self.level_cards = {}
-        for idx, (number, config) in enumerate(NIVELES.items(), start=1):
+        for number, config in NIVELES.items():
+            time_bonus = self._time_bonus_for_level(number)
             card = QFrame()
-            card.setStyleSheet(self._card_style(config["color"], "#24283b"))
+            card.setStyleSheet(self._card_style(config["color"]))
             card_layout = QVBoxLayout(card)
             card_layout.setContentsMargins(18, 18, 18, 18)
             card_layout.setSpacing(10)
 
             status = QLabel("NUEVO" if number not in self.level_status else self.level_status[number])
-            status.setStyleSheet(f"color: {config['color']}; font-family: 'Menlo'; font-size: 9px; font-weight: 800;")
+            status.setStyleSheet(f"background-color: transparent; border: none; color: {config['color']}; font-family: {FONT_FAMILY}; font-size: 10px; font-weight: 900;")
             card_layout.addWidget(status, alignment=Qt.AlignRight)
 
             title_label = QLabel(f"NIVEL {number}")
-            title_label.setStyleSheet(f"color: {config['color']}; font-family: 'Menlo'; font-size: 10px; font-weight: 800;")
+            title_label.setStyleSheet(f"background-color: transparent; border: none; color: {config['color']}; font-family: {FONT_FAMILY}; font-size: 11px; font-weight: 900;")
             card_layout.addWidget(title_label)
 
             nome = QLabel(config["nombre"].upper())
-            nome.setStyleSheet(f"color: {config['color']}; font-family: 'Menlo'; font-size: 24px; font-weight: 800;")
+            nome.setStyleSheet(f"background-color: transparent; border: none; color: {config['color']}; font-family: {FONT_FAMILY}; font-size: 26px; font-weight: 900;")
             card_layout.addWidget(nome)
 
             info = QLabel(f"Tablero {config['tamano']}x{config['tamano']} • {formatear_tiempo(config['tiempo'])} • {config['vidas']} vidas")
-            info.setStyleSheet("color: #c0caf5; font-family: 'Menlo'; font-size: 11px;")
+            info.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['text']}; font-family: {FONT_FAMILY}; font-size: 12px; font-weight: 700;")
             info.setWordWrap(True)
             card_layout.addWidget(info)
 
             tags = QHBoxLayout()
             hints = QLabel(f"{config['pistas']} pistas")
-            hints.setStyleSheet("background-color: #1a1b26; color: #bb9af7; border-radius: 999px; padding: 6px 10px; font-family: 'Menlo'; font-size: 9px; font-weight: 800;")
-            points = QLabel(f"{config['puntos_base']} pts/word")
-            points.setStyleSheet("background-color: #1a1b26; color: #ff9e64; border-radius: 999px; padding: 6px 10px; font-family: 'Menlo'; font-size: 9px; font-weight: 800;")
+            hints.setStyleSheet(f"background-color: {COLORS['surface']}; color: {COLORS['purple']}; border-radius: 8px; padding: 6px 9px; font-family: {FONT_FAMILY}; font-size: 9px; font-weight: 800;")
+            points = QLabel(f"{config['puntos_base']} pts")
+            points.setStyleSheet(f"background-color: {COLORS['surface']}; color: {COLORS['orange']}; border-radius: 8px; padding: 6px 9px; font-family: {FONT_FAMILY}; font-size: 9px; font-weight: 800;")
+            bonus = QLabel(f"+{time_bonus}s")
+            bonus.setStyleSheet(f"background-color: {COLORS['surface']}; color: {COLORS['neon']}; border-radius: 8px; padding: 6px 9px; font-family: {FONT_FAMILY}; font-size: 9px; font-weight: 800;")
             tags.addWidget(hints)
             tags.addWidget(points)
+            tags.addWidget(bonus)
             tags.addStretch()
             card_layout.addLayout(tags)
 
             play_btn = QPushButton("JUGAR")
-            play_btn.setStyleSheet(self._button_style(config["color"], "#1a1b26"))
+            play_btn.setStyleSheet(self._button_style(config["color"], COLORS["surface"]))
             play_btn.clicked.connect(lambda checked=False, n=number: self.start_level(n))
             card_layout.addWidget(play_btn)
 
@@ -392,111 +516,115 @@ class WordHuntApp(QMainWindow):
         self.stacked.addWidget(page)
 
     def _build_game_view(self):
-        page = QWidget()
+        page = self._page()
         layout = QVBoxLayout(page)
-        layout.setContentsMargins(24, 24, 24, 24)
-        layout.setSpacing(14)
+        layout.setContentsMargins(18, 14, 18, 14)
+        layout.setSpacing(8)
 
         header = QFrame()
-        header.setStyleSheet("background: transparent;")
+        header.setStyleSheet(f"background-color: rgba(16, 24, 39, 205); border: 1px solid {COLORS['line']}; border-radius: 10px;")
         header_layout = QHBoxLayout(header)
-        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setContentsMargins(10, 7, 10, 7)
 
         back_btn = QPushButton("X SALIR")
-        back_btn.setStyleSheet(self._button_style("#1a1b26", "#f7768e"))
+        back_btn.setStyleSheet(self._button_style(COLORS["surface"], COLORS["red"]))
         back_btn.clicked.connect(lambda: self.show_screen("level"))
         header_layout.addWidget(back_btn)
 
         self.level_header = QLabel("")
-        self.level_header.setStyleSheet("color: #c0caf5; font-family: 'Menlo'; font-size: 18px; font-weight: 800;")
+        self.level_header.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['text']}; font-family: {FONT_FAMILY}; font-size: 19px; font-weight: 900;")
         header_layout.addWidget(self.level_header)
         header_layout.addStretch()
 
         self.timer_label = QLabel("03:00")
-        self.timer_label.setStyleSheet("background-color: #24283b; color: #7dcfff; border-radius: 12px; padding: 10px 14px; font-family: 'Menlo'; font-size: 22px; font-weight: 800;")
+        self.timer_label.setStyleSheet(f"background-color: {COLORS['surface']}; color: {COLORS['neon']}; border: 1px solid {COLORS['cyan']}; border-radius: 8px; padding: 7px 14px; font-family: {LETTER_FONT}; font-size: 24px; font-weight: 900;")
+        self._add_glow(self.timer_label, COLORS["cyan"], 18)
         header_layout.addWidget(self.timer_label)
 
         layout.addWidget(header)
 
         content = QHBoxLayout()
-        content.setSpacing(18)
+        content.setSpacing(14)
 
         left_panel = QFrame()
-        left_panel.setStyleSheet("background-color: #1a1b26; border-radius: 24px; border: 1px solid #414868;")
+        left_panel.setStyleSheet(f"background-color: rgba(16, 24, 39, 235); border-radius: 12px; border: 1px solid {COLORS['cyan']};")
         left_layout = QVBoxLayout(left_panel)
-        left_layout.setContentsMargins(18, 18, 18, 18)
-        left_layout.setSpacing(12)
+        left_layout.setContentsMargins(12, 12, 12, 12)
+        left_layout.setSpacing(8)
 
         timer_progress = QFrame()
-        timer_progress.setStyleSheet("background-color: #24283b; border-radius: 999px;")
-        timer_progress.setFixedHeight(10)
+        timer_progress.setStyleSheet(f"background-color: {COLORS['panel']}; border-radius: 5px;")
+        timer_progress.setFixedHeight(8)
         timer_progress_layout = QHBoxLayout(timer_progress)
         timer_progress_layout.setContentsMargins(0,0,0,0)
         self.time_fill = QFrame()
-        self.time_fill.setStyleSheet("background-color: #7dcfff; border-radius: 999px;")
+        self.time_fill.setStyleSheet(f"background-color: {COLORS['cyan']}; border-radius: 5px;")
         self.time_fill.setFixedWidth(0)
         timer_progress_layout.addWidget(self.time_fill)
         left_layout.addWidget(timer_progress)
 
         board_card = QFrame()
-        board_card.setStyleSheet("background-color: #24283b; border-radius: 24px; border: 1px solid #414868;")
+        board_card.setStyleSheet(f"background-color: {COLORS['panel']}; border-radius: 10px; border: 1px solid {COLORS['neon']};")
         board_layout = QVBoxLayout(board_card)
-        board_layout.setContentsMargins(14, 14, 14, 14)
+        board_layout.setContentsMargins(8, 8, 8, 8)
 
         self.board_widget = QWidget()
         self.board_grid = QGridLayout(self.board_widget)
         self.board_grid.setSpacing(6)
         self.board_grid.setContentsMargins(0,0,0,0)
-        board_layout.addWidget(self.board_widget)
-        left_layout.addWidget(board_card)
+        board_layout.addWidget(self.board_widget, alignment=Qt.AlignCenter)
+        left_layout.addWidget(board_card, 1)
 
         controls = QFrame()
-        controls.setStyleSheet("background-color: #1a1b26;")
+        controls.setStyleSheet(f"background-color: {COLORS['surface']}; border: 1px solid {COLORS['line']}; border-radius: 8px;")
         controls_layout = QHBoxLayout(controls)
-        controls_layout.setContentsMargins(0,0,0,0)
+        controls_layout.setContentsMargins(10, 7, 10, 7)
 
         self.word_preview = QLabel("")
-        self.word_preview.setStyleSheet("color: #e0af68; font-family: 'Menlo'; font-size: 22px; font-weight: 800;")
-        self.word_preview.setMinimumHeight(30)
+        self.word_preview.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['yellow']}; font-family: {LETTER_FONT}; font-size: 24px; font-weight: 900;")
+        self.word_preview.setMinimumHeight(26)
+        self._add_glow(self.word_preview, COLORS["yellow"], 18)
         controls_layout.addWidget(self.word_preview)
 
         controls_layout.addStretch()
 
         self.status_label = QLabel("Selecciona letras para formar una palabra.")
-        self.status_label.setStyleSheet("color: #c0caf5; font-family: 'Menlo'; font-size: 10px;")
+        self.status_label.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['soft']}; font-family: {FONT_FAMILY}; font-size: 11px; font-weight: 700;")
         controls_layout.addWidget(self.status_label, alignment=Qt.AlignRight)
         left_layout.addWidget(controls)
 
         actions = QHBoxLayout()
-        actions.setSpacing(10)
+        actions.setSpacing(8)
         self.confirm_btn = QPushButton("CONFIRMAR")
-        self.confirm_btn.setStyleSheet(self._button_style("#9ece6a", "#1a1b26"))
+        self.confirm_btn.setStyleSheet(self._button_style(COLORS["green"], COLORS["surface"]))
         self.confirm_btn.clicked.connect(self.confirm_selection)
         actions.addWidget(self.confirm_btn)
 
         self.clear_btn = QPushButton("BORRAR")
-        self.clear_btn.setStyleSheet(self._button_style("#f7768e", "#1a1b26"))
+        self.clear_btn.setStyleSheet(self._button_style(COLORS["red"], COLORS["surface"]))
         self.clear_btn.clicked.connect(self.clear_selection)
         actions.addWidget(self.clear_btn)
 
         self.hint_btn = QPushButton("PISTA (0)")
-        self.hint_btn.setStyleSheet(self._button_style("#bb9af7", "#1a1b26"))
+        self.hint_btn.setStyleSheet(self._button_style(COLORS["purple"], COLORS["surface"]))
         self.hint_btn.clicked.connect(self.use_hint)
         actions.addWidget(self.hint_btn)
         left_layout.addLayout(actions)
 
         right_panel = QFrame()
-        right_panel.setStyleSheet("background-color: #24283b; border-radius: 26px; border: 1px solid #414868;")
+        right_panel.setStyleSheet(f"background-color: rgba(23, 32, 51, 235); border-radius: 12px; border: 1px solid {COLORS['line']};")
+        right_panel.setMinimumWidth(286)
+        right_panel.setMaximumWidth(300)
         right_layout = QVBoxLayout(right_panel)
-        right_layout.setContentsMargins(18, 18, 18, 18)
-        right_layout.setSpacing(12)
+        right_layout.setContentsMargins(14, 14, 14, 14)
+        right_layout.setSpacing(9)
 
-        right_layout.addWidget(QLabel("ESTADÍSTICAS"), alignment=Qt.AlignLeft)
-        right_layout.addWidget(QLabel("Seguimiento del progreso y el combo"), alignment=Qt.AlignLeft)
+        right_layout.addWidget(self._label("ESTADÍSTICAS", COLORS["text"], 14, 900), alignment=Qt.AlignLeft)
+        right_layout.addWidget(self._label("Progreso del nivel", COLORS["soft"], 11, 800), alignment=Qt.AlignLeft)
 
-        self.score_card = self._create_stat_card("PUNTOS", "0", "#e0af68")
-        self.combo_card = self._create_stat_card("COMBO", "x0", "#ff9e64")
-        self.lives_card = self._create_stat_card("VIDAS", "●●●", "#f7768e")
+        self.score_card = self._create_stat_card("PUNTOS", "0", COLORS["yellow"])
+        self.combo_card = self._create_stat_card("COMBO", "x0", COLORS["orange"])
+        self.lives_card = self._create_stat_card("VIDAS", "●●●", COLORS["red"])
         self.score_value_label = self.score_card.value_label
         self.combo_value_label = self.combo_card.value_label
         self.lives_value_label = self.lives_card.value_label
@@ -505,7 +633,7 @@ class WordHuntApp(QMainWindow):
         right_layout.addWidget(self.lives_card)
 
         words_title = QLabel("PALABRAS")
-        words_title.setStyleSheet("color: #c0caf5; font-family: 'Menlo'; font-size: 12px; font-weight: 800;")
+        words_title.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['text']}; font-family: {FONT_FAMILY}; font-size: 13px; font-weight: 900;")
         right_layout.addWidget(words_title)
 
         self.words_container = QWidget()
@@ -519,10 +647,10 @@ class WordHuntApp(QMainWindow):
         right_layout.addWidget(self.words_scroll)
 
         self.progress_label = QLabel("0/0 · 0%")
-        self.progress_label.setStyleSheet("color: #7dcfff; font-family: 'Menlo'; font-size: 12px; font-weight: 800;")
+        self.progress_label.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['cyan']}; font-family: {LETTER_FONT}; font-size: 13px; font-weight: 900;")
         right_layout.addWidget(self.progress_label)
 
-        content.addWidget(left_panel, 3)
+        content.addWidget(left_panel, 4)
         content.addWidget(right_panel, 1)
 
         layout.addLayout(content)
@@ -530,25 +658,25 @@ class WordHuntApp(QMainWindow):
         self.stacked.addWidget(page)
 
     def _build_summary_view(self):
-        page = QWidget()
+        page = self._page()
         layout = QVBoxLayout(page)
         layout.setContentsMargins(40, 28, 40, 28)
         layout.setSpacing(16)
 
         self.summary_title = QLabel("VICTORIA")
-        self.summary_title.setStyleSheet("color: #9ece6a; font-family: 'Menlo'; font-size: 58px; font-weight: 800;")
+        self.summary_title.setStyleSheet(f"color: {COLORS['green']}; font-family: {FONT_FAMILY}; font-size: 58px; font-weight: 800;")
         self.summary_title.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.summary_title)
 
         self.summary_subtitle = QLabel("Has completado el nivel.")
-        self.summary_subtitle.setStyleSheet("color: #c0caf5; font-family: 'Menlo'; font-size: 13px;")
+        self.summary_subtitle.setStyleSheet(f"color: {COLORS['text']}; font-family: {FONT_FAMILY}; font-size: 13px;")
         self.summary_subtitle.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.summary_subtitle)
 
         summary_cards = QHBoxLayout()
-        self.summary_score = self._create_stat_card("PUNTUACIÓN FINAL", "0", "#e0af68")
-        self.summary_bonus = self._create_stat_card("BONUS", "0", "#7dcfff")
-        self.summary_combo = self._create_stat_card("MEJOR COMBO", "x0", "#ff9e64")
+        self.summary_score = self._create_stat_card("PUNTUACIÓN FINAL", "0", COLORS["yellow"])
+        self.summary_bonus = self._create_stat_card("BONUS", "0", COLORS["cyan"])
+        self.summary_combo = self._create_stat_card("MEJOR COMBO", "x0", COLORS["orange"])
         summary_cards.addWidget(self.summary_score)
         summary_cards.addWidget(self.summary_bonus)
         summary_cards.addWidget(self.summary_combo)
@@ -556,13 +684,13 @@ class WordHuntApp(QMainWindow):
 
         action_row = QHBoxLayout()
         retry_btn = QPushButton("REINTENTAR")
-        retry_btn.setStyleSheet(self._button_style("#7dcfff", "#1a1b26"))
+        retry_btn.setStyleSheet(self._button_style(COLORS["cyan"], COLORS["surface"]))
         retry_btn.clicked.connect(self.retry_level)
         next_btn = QPushButton("SIGUIENTE")
-        next_btn.setStyleSheet(self._button_style("#9ece6a", "#1a1b26"))
+        next_btn.setStyleSheet(self._button_style(COLORS["green"], COLORS["surface"]))
         next_btn.clicked.connect(self.next_level)
         menu_btn = QPushButton("MENÚ")
-        menu_btn.setStyleSheet(self._button_style("#bb9af7", "#1a1b26"))
+        menu_btn.setStyleSheet(self._button_style(COLORS["purple"], COLORS["surface"]))
         menu_btn.clicked.connect(lambda: self.show_screen("home"))
         action_row.addWidget(retry_btn)
         action_row.addWidget(next_btn)
@@ -587,11 +715,11 @@ class WordHuntApp(QMainWindow):
             particle["widget"].deleteLater()
         self.confetti_particles = []
 
-        colors = ["#9ece6a", "#7dcfff", "#e0af68", "#ff9e64", "#bb9af7", "#f7768e", "#ff79c6"]
+        colors = [COLORS["green"], COLORS["cyan"], COLORS["yellow"], COLORS["orange"], COLORS["purple"], COLORS["red"], COLORS["pink"]]
         for _ in range(48):
             particle = QLabel(random.choice(["✦", "●", "★", "❇"]))
             particle.setAttribute(Qt.WA_TransparentForMouseEvents)
-            particle.setStyleSheet(f"color: {random.choice(colors)}; font-family: 'Menlo'; font-size: 18px; font-weight: 800;")
+            particle.setStyleSheet(f"color: {random.choice(colors)}; font-family: {FONT_FAMILY}; font-size: 18px; font-weight: 800;")
             particle.adjustSize()
             x = random.randint(20, max(40, self.width() - 40))
             y = random.randint(-20, 120)
@@ -632,16 +760,16 @@ class WordHuntApp(QMainWindow):
     def _create_stat_card(self, title, value, accent):
         card = QFrame()
         card.setStyleSheet(
-            f"QFrame {{ background-color: #24283b; border-radius: 18px; border: 1px solid {accent}; }}"
+            f"QFrame {{ background-color: {COLORS['surface']}; border-radius: 8px; border: 1px solid {accent}; }}"
         )
-        card.setMinimumHeight(78)
+        card.setMinimumHeight(70)
         layout = QVBoxLayout(card)
-        layout.setContentsMargins(14, 12, 14, 12)
-        layout.setSpacing(4)
+        layout.setContentsMargins(12, 9, 12, 9)
+        layout.setSpacing(3)
         title_label = QLabel(title)
-        title_label.setStyleSheet("color: #565f89; font-family: 'Menlo'; font-size: 9px; font-weight: 800;")
+        title_label.setStyleSheet(f"background-color: transparent; border: none; color: {COLORS['soft']}; font-family: {FONT_FAMILY}; font-size: 10px; font-weight: 900;")
         value_label = QLabel(str(value))
-        value_label.setStyleSheet(f"color: {accent}; font-family: 'Menlo'; font-size: 24px; font-weight: 800;")
+        value_label.setStyleSheet(f"background-color: transparent; border: none; color: {accent}; font-family: {LETTER_FONT}; font-size: 24px; font-weight: 900;")
         layout.addWidget(title_label)
         layout.addWidget(value_label)
         card.value_label = value_label
@@ -666,24 +794,27 @@ class WordHuntApp(QMainWindow):
             self.stacked.setCurrentWidget(self.summary_page)
 
     def refresh_home_stats(self):
-        # update home cards to current in-memory stats
-        pass
+        completed = sum(1 for status in self.level_status.values() if status == "COMPLETADO")
+        self.home_score_card.value_label.setText(str(self.best_score))
+        self.home_games_card.value_label.setText(str(self.games_played))
+        self.home_words_card.value_label.setText(str(self.total_words_found))
+        self.home_levels_card.value_label.setText(f"{completed}/{len(NIVELES)}")
 
     def refresh_level_cards(self):
         for number, card in self.level_cards.items():
             status = "COMPLETADO" if self.level_status.get(number) == "COMPLETADO" else "NUEVO"
-            status_color = "#9ece6a" if status == "COMPLETADO" else "#7dcfff"
+            status_color = COLORS["green"] if status == "COMPLETADO" else COLORS["cyan"]
             for child in card.findChildren(QLabel):
                 if child.text() == "NUEVO" or child.text() == "COMPLETADO":
                     child.setText(status)
-                    child.setStyleSheet(f"color: {status_color}; font-family: 'Menlo'; font-size: 9px; font-weight: 800;")
+                    child.setStyleSheet(f"background-color: transparent; border: none; color: {status_color}; font-family: {FONT_FAMILY}; font-size: 10px; font-weight: 900;")
                     break
 
     def start_level(self, level_number):
         self.current_level = level_number
         config = NIVELES[level_number]
         self.current_board, self.hidden_positions, self.hidden_words = generar_tablero(config["tamano"], config["palabras"])
-        palette = ["#7dcfff", "#9ece6a", "#e0af68", "#ff9e64", "#ff79c6", "#bb9af7", "#f7768e"]
+        palette = [COLORS["cyan"], COLORS["green"], COLORS["yellow"], COLORS["orange"], COLORS["pink"], COLORS["purple"], COLORS["red"]]
         self.word_colors = {word: palette[index % len(palette)] for index, word in enumerate(self.hidden_words)}
         self.hint_positions.clear()
         self.hint_sources.clear()
@@ -698,9 +829,9 @@ class WordHuntApp(QMainWindow):
         self.hints_left = config["pistas"]
         self.time_left = config["tiempo"]
         self.level_header.setText(f"NIVEL {level_number}: {config['nombre'].upper()}")
-        self.level_header.setStyleSheet(f"color: {config['color']}; font-family: 'Menlo'; font-size: 18px; font-weight: 800;")
+        self.level_header.setStyleSheet(f"background-color: transparent; border: none; color: {config['color']}; font-family: {FONT_FAMILY}; font-size: 19px; font-weight: 900;")
         self.timer_label.setText(formatear_tiempo(self.time_left))
-        self.timer_label.setStyleSheet(f"background-color: #24283b; color: {config['color']}; border-radius: 12px; padding: 10px 14px; font-family: 'Menlo'; font-size: 22px; font-weight: 800;")
+        self.timer_label.setStyleSheet(f"background-color: {COLORS['surface']}; color: {config['color']}; border: 1px solid {config['color']}; border-radius: 8px; padding: 7px 14px; font-family: {LETTER_FONT}; font-size: 24px; font-weight: 900;")
         self.hint_btn.setText(f"PISTA ({self.hints_left})")
         self.word_preview.setText("")
         self.status_label.setText("Selecciona letras para formar una palabra.")
@@ -722,17 +853,48 @@ class WordHuntApp(QMainWindow):
 
         config = NIVELES[self.current_level]
         size = config["tamano"]
+        if size <= 8:
+            cell_size = 49
+            cell_font = 24
+            grid_gap = 5
+        elif size <= 10:
+            cell_size = 40
+            cell_font = 20
+            grid_gap = 4
+        elif size <= 12:
+            cell_size = 33
+            cell_font = 17
+            grid_gap = 3
+        elif size <= 14:
+            cell_size = 29
+            cell_font = 15
+            grid_gap = 2
+        elif size <= 16:
+            cell_size = 26
+            cell_font = 13
+            grid_gap = 2
+        else:
+            cell_size = 23
+            cell_font = 12
+            grid_gap = 2
+        cell_radius = 6 if cell_size >= 40 else 3
+        board_size = (size * cell_size) + ((size - 1) * grid_gap)
+        self.board_widget.setFixedSize(board_size, board_size)
+        self.board_grid.setSpacing(grid_gap)
         for row in range(size):
             row_buttons = []
             for col in range(size):
                 letter = self.current_board[row][col]
                 cell_btn = QPushButton(letter)
-                cell_btn.setFixedSize(48, 48)
+                cell_btn.setFixedSize(cell_size, cell_size)
                 cell_btn.setCheckable(True)
+                cell_btn.setFocusPolicy(Qt.NoFocus)
+                cell_btn.setProperty("cell_font", cell_font)
+                cell_btn.setProperty("cell_radius", cell_radius)
                 cell_btn.setStyleSheet(
-                    "QPushButton { background-color: #414868; color: #c0caf5; border-radius: 10px; font-family: 'Menlo'; font-size: 16px; font-weight: 800; }"
-                    "QPushButton:hover { background-color: #565f89; }"
-                    "QPushButton:checked { background-color: #7dcfff; color: #1a1b26; }"
+                    f"QPushButton {{ background-color: #0d1628; color: {COLORS['letter']}; border: 1px solid {COLORS['line']}; border-radius: {cell_radius}px; padding: 0px; outline: none; font-family: {LETTER_FONT}; font-size: {cell_font}px; font-weight: 900; }}"
+                    f"QPushButton:hover {{ background-color: #16284a; color: {COLORS['neon']}; border-color: {COLORS['cyan']}; }}"
+                    f"QPushButton:checked {{ background-color: {COLORS['cyan']}; color: {COLORS['surface']}; }}"
                 )
                 cell_btn.clicked.connect(lambda checked=False, r=row, c=col: self.toggle_cell(r, c))
                 self.board_grid.addWidget(cell_btn, row, col)
@@ -770,27 +932,35 @@ class WordHuntApp(QMainWindow):
                     continue
                 position = (row, col)
                 if position in self.selected_positions:
+                    cell_font = button.property("cell_font") or 13
+                    cell_radius = button.property("cell_radius") or 3
                     button.setChecked(True)
                     button.setStyleSheet(
-                        "QPushButton { background-color: #7dcfff; color: #1a1b26; border-radius: 10px; border: 2px solid #7dcfff; font-family: 'Menlo'; font-size: 16px; font-weight: 800; }"
+                        f"QPushButton {{ background-color: {COLORS['cyan']}; color: {COLORS['surface']}; border-radius: {cell_radius}px; border: 2px solid {COLORS['neon']}; padding: 0px; outline: none; font-family: {LETTER_FONT}; font-size: {cell_font}px; font-weight: 900; }}"
                     )
                 elif position in found_positions:
+                    cell_font = button.property("cell_font") or 13
+                    cell_radius = button.property("cell_radius") or 3
                     word = found_word_by_pos[position]
-                    accent = self.word_colors.get(word, "#9ece6a")
+                    accent = self.word_colors.get(word, COLORS["green"])
                     button.setChecked(False)
                     button.setStyleSheet(
-                        f"QPushButton {{ background-color: {accent}; color: #1a1b26; border-radius: 10px; border: 2px solid {accent}; font-family: 'Menlo'; font-size: 16px; font-weight: 800; }}"
+                        f"QPushButton {{ background-color: {accent}; color: {COLORS['surface']}; border-radius: {cell_radius}px; border: 2px solid {accent}; padding: 0px; outline: none; font-family: {LETTER_FONT}; font-size: {cell_font}px; font-weight: 900; }}"
                     )
                 elif position in self.hint_positions:
+                    cell_font = button.property("cell_font") or 13
+                    cell_radius = button.property("cell_radius") or 3
                     button.setChecked(False)
                     button.setStyleSheet(
-                        "QPushButton { background-color: #1a1b26; color: #e0af68; border-radius: 10px; border: 2px solid #e0af68; font-family: 'Menlo'; font-size: 16px; font-weight: 800; }"
+                        f"QPushButton {{ background-color: {COLORS['surface']}; color: {COLORS['yellow']}; border-radius: {cell_radius}px; border: 2px solid {COLORS['yellow']}; padding: 0px; outline: none; font-family: {LETTER_FONT}; font-size: {cell_font}px; font-weight: 900; }}"
                     )
                 else:
+                    cell_font = button.property("cell_font") or 13
+                    cell_radius = button.property("cell_radius") or 3
                     button.setChecked(False)
                     button.setStyleSheet(
-                        "QPushButton { background-color: #414868; color: #c0caf5; border-radius: 10px; font-family: 'Menlo'; font-size: 16px; font-weight: 800; }"
-                        "QPushButton:hover { background-color: #565f89; }"
+                        f"QPushButton {{ background-color: #0d1628; color: {COLORS['letter']}; border: 1px solid {COLORS['line']}; border-radius: {cell_radius}px; padding: 0px; outline: none; font-family: {LETTER_FONT}; font-size: {cell_font}px; font-weight: 900; }}"
+                        f"QPushButton:hover {{ background-color: #16284a; color: {COLORS['neon']}; border-color: {COLORS['cyan']}; }}"
                     )
 
     def clear_selection(self):
@@ -814,17 +984,19 @@ class WordHuntApp(QMainWindow):
         self.combo += 1
         self.best_combo = max(self.best_combo, self.combo)
         config = NIVELES[self.current_level]
+        time_bonus = self._time_bonus_for_level(self.current_level)
         gained = config["puntos_base"] * len(word) * max(1, self.combo)
         self.score += gained
-        for pos in self.hidden_positions[word]:
-            self.current_board[pos[0]][pos[1]] = self.current_board[pos[0]][pos[1]]
+        self.time_left += time_bonus
+        self.timer_label.setText(formatear_tiempo(self.time_left))
         self._refresh_sidebar()
         self._refresh_progress()
         self.word_preview.setText("")
         self.selected_positions = []
         self.selected_letters = []
-        self.status_label.setText(f"¡{word} encontrada! +{gained} puntos.")
+        self.status_label.setText(f"¡{word} encontrada! +{gained} puntos y +{time_bonus}s.")
         self._rebuild_board_visuals()
+        self._update_time_bar()
         if len(self.found_words) == len(self.hidden_words):
             self.finish_level(victory=True)
 
@@ -833,8 +1005,6 @@ class WordHuntApp(QMainWindow):
         self.combo = 0
         self.status_label.setText("Palabra incorrecta. Pierdes una vida.")
         self._refresh_sidebar()
-        for pos in self.selected_positions:
-            pass
         self.word_preview.setText("")
         self.selected_positions = []
         self.selected_letters = []
@@ -877,19 +1047,19 @@ class WordHuntApp(QMainWindow):
 
         for word in self.hidden_words:
             row = QFrame()
-            accent = self.word_colors.get(word, "#7dcfff")
+            accent = self.word_colors.get(word, COLORS["cyan"])
             row.setStyleSheet(
-                f"QFrame {{ background-color: #1a1b26; border-radius: 12px; border: 1px solid {accent}; }}"
+                f"QFrame {{ background-color: {COLORS['surface']}; border-radius: 8px; border: 1px solid {accent}; }}"
             )
             row_layout = QHBoxLayout(row)
-            row_layout.setContentsMargins(10, 8, 10, 8)
+            row_layout.setContentsMargins(11, 8, 11, 8)
             word_label = QLabel(word)
-            word_label.setStyleSheet(f"color: {accent}; font-family: 'Menlo'; font-size: 11px; font-weight: 800;")
+            word_label.setStyleSheet(f"background-color: transparent; border: none; color: {accent}; font-family: {LETTER_FONT}; font-size: 13px; font-weight: 900;")
             row_layout.addWidget(word_label)
 
             status_label = QLabel("ENCONTRADA" if word in self.found_words else "OCULTA")
             status_label.setStyleSheet(
-                "color: #c0caf5; font-family: 'Menlo'; font-size: 9px; font-weight: 800;"
+                f"background-color: transparent; border: none; color: {COLORS['text']}; font-family: {FONT_FAMILY}; font-size: 9px; font-weight: 900;"
             )
             row_layout.addStretch()
             row_layout.addWidget(status_label)
@@ -897,15 +1067,15 @@ class WordHuntApp(QMainWindow):
 
     def _update_time_bar(self):
         config = NIVELES[self.current_level]
-        ratio = max(self.time_left / config["tiempo"], 0)
+        ratio = min(max(self.time_left / config["tiempo"], 0), 1)
         fill_width = max(10, int(320 * ratio))
         self.time_fill.setFixedWidth(fill_width)
         if ratio < 0.25:
-            self.time_fill.setStyleSheet("background-color: #f7768e; border-radius: 999px;")
+            self.time_fill.setStyleSheet(f"background-color: {COLORS['red']}; border-radius: 5px;")
         elif ratio < 0.5:
-            self.time_fill.setStyleSheet("background-color: #e0af68; border-radius: 999px;")
+            self.time_fill.setStyleSheet(f"background-color: {COLORS['yellow']}; border-radius: 5px;")
         else:
-            self.time_fill.setStyleSheet("background-color: #7dcfff; border-radius: 999px;")
+            self.time_fill.setStyleSheet(f"background-color: {COLORS['cyan']}; border-radius: 5px;")
 
     def tick_timer(self):
         self.time_left -= 1
@@ -928,13 +1098,13 @@ class WordHuntApp(QMainWindow):
         if victory:
             self.level_status[self.current_level] = "COMPLETADO"
             self.summary_title.setText("VICTORIA")
-            self.summary_title.setStyleSheet("color: #9ece6a; font-family: 'Menlo'; font-size: 58px; font-weight: 800;")
+            self.summary_title.setStyleSheet(f"color: {COLORS['green']}; font-family: {FONT_FAMILY}; font-size: 58px; font-weight: 800;")
             self.summary_subtitle.setText("Has completado el nivel y sumaste bonificaciones.")
             self.summary_score.value_label.setText(str(final_score))
             self._launch_confetti()
         else:
             self.summary_title.setText("DERROTA")
-            self.summary_title.setStyleSheet("color: #f7768e; font-family: 'Menlo'; font-size: 58px; font-weight: 800;")
+            self.summary_title.setStyleSheet(f"color: {COLORS['red']}; font-family: {FONT_FAMILY}; font-size: 58px; font-weight: 800;")
             self.summary_subtitle.setText("Se agotó el tiempo o te quedaste sin vidas.")
             self.summary_score.value_label.setText(str(self.score))
             self.confetti_layer.hide()
