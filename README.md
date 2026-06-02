@@ -1,93 +1,91 @@
-# 🎮 Word Hunt Game
+# Word Hunt Game
 
-## 📌 Descripción del proyecto
+## Project Description
 
-**Word Hunt Game** es un juego interactivo desarrollado en Python como proyecto final de Code in Place.  
-El objetivo del jugador es descubrir palabras ocultas dentro del menor número de intentos posibles.
+**Word Hunt Game** is an interactive Python project developed as a final project for Code in Place. The goal is to discover hidden words in a grid, build combinations, manage time and lives, and score points by finding valid words.
 
-El juego pone a prueba la lógica, el reconocimiento de patrones y la capacidad de deducción del usuario, convirtiéndose en una experiencia sencilla pero entretenida.
-
-Este proyecto fue creado como una aplicación de escritorio utilizando interfaz gráfica con Python.
+This project was built as a desktop application with a graphical interface using PyQt5.
 
 ---
 
-## 👩‍💻 Autora
+## Author
 
 **Valeria Góngora**
 
 ---
 
-## 🧠 ¿En qué se basa el juego?
+## What the Game Is About
 
-El juego consiste en:
+The game includes:
 
-- Una palabra oculta seleccionada aleatoriamente  
-- El jugador intenta adivinarla letra por letra  
-- Se muestra el progreso de la palabra  
-- Se limitan los intentos  
-- El jugador gana si descubre la palabra antes de quedarse sin intentos  
-
-## 📚 Conexión con las semanas del curso
-
-Este proyecto aplica varios conceptos vistos en Code in Place:
-
-- Week 3: Variables, números, `random` y uso de librerías.
-  - Se usa `random` para generar el tablero y ubicar palabras de forma aleatoria.
-- Week 4: `if`, `elif`, `else`, `for` y `while`.
-  - Se usan condicionales para verificar palabras encontradas, vidas, tiempo y resultados.
-  - Se usan bucles para recorrer la matriz y actualizar la lista de palabras.
-- Week 5: Graphics.
-  - La interfaz está construida con PyQt5: botones, cuadrícula, pantallas, tarjetas y temporizador.
-- Week 6: Data.
-  - Se usan listas como `hidden_words`, `found_words` y `board_buttons`.
-  - Se usa un diccionario `NIVELES` para guardar dificultad, tiempo, pistas y puntuación.
-  - También se mantiene un diccionario explícito `found_words_status` para saber qué palabras ya fueron encontradas.
-
-Esta combinación demuestra que el proyecto no solo funciona como juego, sino que también aplica conceptos de programación vistos en el curso.
+- A hidden word search board generated randomly
+- Selection of letters in straight lines: horizontal, vertical, or diagonal
+- Word validation and scoring
+- Lives and timer management
+- Bonus points for correct words and level progression
 
 ---
 
-## 🛠️ Tecnologías utilizadas
+## Course Connection
 
-- Python 3  
-- PyQt (interfaz gráfica)  
-- Módulos estándar de Python:
-  - random
-  - os
-  - string  
+This project applies several topics covered in Code in Place:
+
+- Week 3: Variables, numbers, `random`, and libraries
+  - `random` is used to generate the board and place words randomly.
+- Week 4: `if`, `elif`, `else`, `for`, and `while`
+  - Conditional logic checks found words, lives, time, and outcomes.
+  - Loops are used to traverse the matrix and update the word list.
+- Week 5: Graphics
+  - The interface is built with PyQt5 using buttons, grids, screens, cards, and timers.
+- Week 6: Data
+  - Lists such as `hidden_words`, `found_words`, and `board_buttons` are used.
+  - A dictionary named `NIVELES` stores difficulty, time, hints, and points.
+  - A dictionary named `found_words_status` tracks which words have already been found.
+
+This project demonstrates not only a working game, but also the use of core programming concepts learned during the course.
 
 ---
 
-## 📁 Estructura del proyecto
+## Technologies Used
 
-```
+- Python 3
+- PyQt5 for the graphical interface
+- Standard Python modules:
+  - `random`
+  - `os`
+  - `string`
+
+---
+
+## Project Structure
+
+```text
 proyecto-final/
-│
 ├── main.py
 ├── src/
-│   ├── main_qt.py   # Lógica principal del juego
-│
-├── assets/          # Recursos (si aplica)
-├── README.md
+│   └── main_qt.py
+├── tests/
+│   └── test_selection_validation.py
+└── README.md
 ```
 
 ---
 
-## ⚙️ Instalación
+## Installation
 
-### 1. Clonar el repositorio
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/valeriagongorator/proyecto-final.git
 ```
 
-### 2. Entrar al proyecto
+### 2. Enter the project folder
 
 ```bash
 cd proyecto-final
 ```
 
-### 3. (Opcional) Crear entorno virtual
+### 3. Optional: create a virtual environment
 
 ```bash
 python3 -m venv venv
@@ -96,9 +94,9 @@ source venv/bin/activate
 
 ---
 
-## 📦 Dependencias
+## Dependencies
 
-Instalar dependencias necesarias:
+Install the required dependency:
 
 ```bash
 pip install PyQt5
@@ -106,7 +104,7 @@ pip install PyQt5
 
 ---
 
-## 🚀 Cómo ejecutar el proyecto
+## How to Run
 
 ```bash
 python3 main.py
@@ -114,52 +112,46 @@ python3 main.py
 
 ---
 
-## 🎮 Cómo jugar
+## How to Play
 
-1. Inicia el programa  
-2. Observa la palabra oculta en guiones  
-3. Ingresa letras para adivinarla  
-4. Cada acierto revela letras  
-5. Ganas si completas la palabra antes de quedarte sin intentos  
-
----
-
-## 🧩 Características principales
-
-- Interfaz gráfica con PyQt  
-- Juego de adivinanza de palabras  
-- Sistema de intentos limitados  
-- Lógica de verificación de letras  
-- Proyecto educativo en Python  
+1. Start the program.
+2. Select a level.
+3. Find hidden words by selecting letters in a straight line.
+4. Confirm the word to earn points and time bonuses.
+5. Avoid incorrect selections, because each wrong attempt costs a life.
 
 ---
 
-## 📌 Notas
+## Main Features
 
-- Proyecto desarrollado para Code in Place  
-- Enfocado en práctica de programación en Python  
-- Código estructurado para aprendizaje  
-
----
-
-## 💡 Posibles mejoras futuras
-
-- Niveles de dificultad  
-- Sistema de puntuación  
-- Temporizador  
-- Base de datos de palabras  
-- Animaciones o sonidos  
+- Graphical interface with PyQt5
+- Word search gameplay
+- Levels of difficulty
+- Score, combo, lives, and timer system
+- Hint system and sound effects
+- Educational Python project structure
 
 ---
 
-## 📷 Demo (opcional)
+## Notes
 
-https://youtube.com/tu-video-aqui
+- Developed as a Code in Place final project
+- Focused on practicing Python and GUI development
+- Designed to be clear, interactive, and easy to extend
 
 ---
 
-## ⭐ Créditos
+## Possible Future Improvements
 
-Desarrollado por:
+- More levels and additional word categories
+- Better animations and visual effects
+- Sound volume controls
+- Local score history or save system
+
+---
+
+## Credits
+
+Developed by:
 
 **Valeria Góngora**
