@@ -2,15 +2,15 @@
 
 ## Project Description
 
-**Word Hunt Game** is an interactive Python project developed as a final project for Code in Place. The goal is to discover hidden words in a grid, build combinations, manage time and lives, and score points by finding valid words.
+**Word Hunt Game** is an interactive Python application developed as the final project for Code in Place 2026 by **Valeria Estefanía Góngora Torres**. The objective of the game is to discover hidden words in a randomly generated grid while managing time, lives, and score points through different difficulty levels.
 
-This project was built as a desktop application with a graphical interface using PyQt5.
+The game was developed as a desktop application using **PyQt5**, providing an engaging graphical interface and an enjoyable user experience.
 
 ---
 
 ## Author
 
-**Valeria Góngora**
+**Valeria Estefanía Góngora Torres**
 
 ---
 
