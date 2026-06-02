@@ -1522,16 +1522,24 @@ class WordHuntApp(QMainWindow):
         if not self.selected_positions:
             return
 
+        if not self._selection_is_straight_line():
+            self.word_preview.setText("")
+            self.selected_positions = []
+            self.selected_letters = []
+            self._rebuild_board_visuals()
+            self._wrong_word()
+            return
+
         matched_word = self._find_selected_word()
         if matched_word is not None:
             self._register_word(matched_word)
             return
 
-        self.status_label.setText(self.t("game_word_invalid"))
         self.word_preview.setText("")
         self.selected_positions = []
         self.selected_letters = []
         self._rebuild_board_visuals()
+        self._wrong_word()
 
     def _register_word(self, word):
         self.found_words.append(word)
