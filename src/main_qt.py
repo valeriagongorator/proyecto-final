@@ -178,6 +178,7 @@ TRANSLATIONS = {
         "game_hidden": "HIDDEN",
         "game_word_found": "{word} found! +{gained} points and +{bonus}s.",
         "game_word_wrong": "Incorrect word. You lose a life.",
+        "game_word_invalid": "Select a word in a straight horizontal, vertical, or diagonal line.",
         "game_hint_used": "Hint: a letter from {word} was highlighted.",
         "level_hints": "{count} hints",
         "summary_victory": "VICTORY",
@@ -243,6 +244,7 @@ TRANSLATIONS = {
         "game_hidden": "OCULTA",
         "game_word_found": "{word} encontrada! +{gained} puntos y +{bonus}s.",
         "game_word_wrong": "Palabra incorrecta. Pierdes una vida.",
+        "game_word_invalid": "Selecciona una palabra en línea recta horizontal, vertical o diagonal.",
         "game_hint_used": "Pista: se resaltó una letra de {word}.",
         "summary_victory": "VICTORIA",
         "summary_defeat": "DERROTA",
@@ -570,6 +572,7 @@ class WordHuntApp(QMainWindow):
         self.hidden_words = []
         self.hidden_positions = {}
         self.word_colors = {}
+        self.found_words_status = {}
         self.hint_positions = set()
         self.hint_sources = {}
         self.found_words = []
@@ -1326,6 +1329,7 @@ class WordHuntApp(QMainWindow):
         self.hint_positions.clear()
         self.hint_sources.clear()
         self.found_words = []
+        self.found_words_status = {word: False for word in self.hidden_words}
         self.selected_positions = []
         self.selected_letters = []
         self.score = 0
@@ -1477,17 +1481,61 @@ class WordHuntApp(QMainWindow):
         self.status_label.setText(self.t("game_select_letters"))
         self._rebuild_board_visuals()
 
+    def _selection_is_straight_line(self):
+        if len(self.selected_positions) < 2:
+            return False
+
+        start_row, start_col = self.selected_positions[0]
+        end_row, end_col = self.selected_positions[-1]
+        delta_row = end_row - start_row
+        delta_col = end_col - start_col
+
+        if delta_row == 0 and delta_col == 0:
+            return False
+        if not (delta_row == 0 or delta_col == 0 or abs(delta_row) == abs(delta_col)):
+            return False
+
+        step_row = 0 if delta_row == 0 else (1 if delta_row > 0 else -1)
+        step_col = 0 if delta_col == 0 else (1 if delta_col > 0 else -1)
+
+        for index, (row, col) in enumerate(self.selected_positions):
+            expected_row = start_row + (index * step_row)
+            expected_col = start_col + (index * step_col)
+            if (row, col) != (expected_row, expected_col):
+                return False
+
+        return True
+
+    def _find_selected_word(self):
+        selected_word = "".join(self.current_board[row][col] for row, col in self.selected_positions)
+        if len(selected_word) != len(self.selected_positions):
+            return None
+        if not self._selection_is_straight_line():
+            return None
+
+        for candidate in (selected_word, selected_word[::-1]):
+            if candidate in self.hidden_words and candidate not in self.found_words:
+                return candidate
+        return None
+
     def confirm_selection(self):
-        word = "".join(self.selected_letters)
-        if not word:
+        if not self.selected_positions:
             return
-        if word in self.hidden_words and word not in self.found_words:
-            self._register_word(word)
-        else:
-            self._wrong_word()
+
+        matched_word = self._find_selected_word()
+        if matched_word is not None:
+            self._register_word(matched_word)
+            return
+
+        self.status_label.setText(self.t("game_word_invalid"))
+        self.word_preview.setText("")
+        self.selected_positions = []
+        self.selected_letters = []
+        self._rebuild_board_visuals()
 
     def _register_word(self, word):
         self.found_words.append(word)
+        self.found_words_status[word] = True
         self._play_effect(self.success_sound)
         self.combo += 1
         self.best_combo = max(self.best_combo, self.combo)
@@ -1566,7 +1614,7 @@ class WordHuntApp(QMainWindow):
             word_label.setStyleSheet(f"background-color: transparent; border: none; color: {accent}; font-family: {LETTER_FONT}; font-size: 13px; font-weight: 900;")
             row_layout.addWidget(word_label)
 
-            is_found = word in self.found_words
+            is_found = bool(self.found_words_status.get(word, False))
             status_label = QLabel(self.t("game_found") if is_found else self.t("game_hidden"))
             status_color = COLORS["green"] if is_found else COLORS["red"]
             status_label.setStyleSheet(
