@@ -27,6 +27,24 @@ El juego consiste en:
 - Se limitan los intentos  
 - El jugador gana si descubre la palabra antes de quedarse sin intentos  
 
+## 📚 Conexión con las semanas del curso
+
+Este proyecto aplica varios conceptos vistos en Code in Place:
+
+- Week 3: Variables, números, `random` y uso de librerías.
+  - Se usa `random` para generar el tablero y ubicar palabras de forma aleatoria.
+- Week 4: `if`, `elif`, `else`, `for` y `while`.
+  - Se usan condicionales para verificar palabras encontradas, vidas, tiempo y resultados.
+  - Se usan bucles para recorrer la matriz y actualizar la lista de palabras.
+- Week 5: Graphics.
+  - La interfaz está construida con PyQt5: botones, cuadrícula, pantallas, tarjetas y temporizador.
+- Week 6: Data.
+  - Se usan listas como `hidden_words`, `found_words` y `board_buttons`.
+  - Se usa un diccionario `NIVELES` para guardar dificultad, tiempo, pistas y puntuación.
+  - También se mantiene un diccionario explícito `found_words_status` para saber qué palabras ya fueron encontradas.
+
+Esta combinación demuestra que el proyecto no solo funciona como juego, sino que también aplica conceptos de programación vistos en el curso.
+
 ---
 
 ## 🛠️ Tecnologías utilizadas
