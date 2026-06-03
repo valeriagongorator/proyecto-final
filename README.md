@@ -154,4 +154,4 @@ python3 main.py
 
 Developed by:
 
-**Valeria Góngora**
+**Valeria Estefanía Góngora Torres**
